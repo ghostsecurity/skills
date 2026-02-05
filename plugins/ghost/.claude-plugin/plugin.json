@@ -1,0 +1,21 @@
+{
+  "name": "ghost",
+  "description": "Enterprise grade AI-native application security scanning, testing, and remediation",
+  "version": "1.0.0",
+  "author": {
+      "name": "Ghost Security",
+      "email": "contact@ghost.security",
+      "url": "https://ghost.security"
+  },
+  "homepage": "https://ghost.security",
+  "repository": "https://github.com/ghostsecurity/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+      "security",
+      "scan",
+      "sast",
+      "sca",
+      "secrets",
+      "appsec"
+  ]
+}
