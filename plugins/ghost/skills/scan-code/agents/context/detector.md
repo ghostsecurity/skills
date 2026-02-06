@@ -18,7 +18,7 @@ You understand that monorepos often contain internal structure that appears proj
 ### Step 1: Generate Repository Map
 
 Generate structural context FIRST — this provides the primary context for project classification.
-Run these via Bash (all three in parallel if possible):
+Run these shell commands (all three in parallel if possible):
 
 1. **Directory tree** (depth 3, directories and files):
    ```bash
@@ -30,17 +30,17 @@ Run these via Bash (all three in parallel if possible):
    find <repo_path> -type f \( -name '*.go' -o -name '*.py' -o -name '*.js' -o -name '*.ts' -o -name '*.tsx' -o -name '*.jsx' -o -name '*.java' -o -name '*.rb' -o -name '*.rs' -o -name '*.php' -o -name '*.cs' -o -name '*.swift' -o -name '*.kt' -o -name '*.ex' -o -name '*.exs' -o -name '*.tf' -o -name '*.vue' -o -name '*.svelte' \) | grep -v 'node_modules\|vendor\|\.git\|dist\|build\|__pycache__\|\.next\|target' | sed 's/.*\.//' | sort | uniq -c | sort -rn
    ```
 
-3. **IaC file listing** via Glob:
+3. **IaC file listing** — search for these file patterns:
    ```
    .github/workflows/*.yml, .gitlab-ci.yml, Jenkinsfile, docker-compose.yml, Dockerfile, **/*.tf, **/deployment.yaml, **/service.yaml
    ```
 
 **THE REPOSITORY MAP (tree + language breakdown) PROVIDES MOST OF THE CONTEXT YOU NEED.**
-Only use additional Glob/Read calls to verify specific details not evident from the map.
+Only use additional file searches or reads to verify specific details not evident from the map.
 
 ### Step 2: Discover Project Markers
 
-Using the repo map, plus targeted Glob calls if needed, find dependency/build files at repo root and 1-2 levels deep:
+Using the repo map, plus targeted file searches if needed, find dependency/build files at repo root and 1-2 levels deep:
 
 - **Language manifests**: package.json, go.mod, go.sum, requirements.txt, pyproject.toml, Cargo.toml, pom.xml, build.gradle, Gemfile, composer.json, *.csproj, mix.exs, Package.swift
 - **CI/CD**: .github/workflows/*.yml, .gitlab-ci.yml, Jenkinsfile

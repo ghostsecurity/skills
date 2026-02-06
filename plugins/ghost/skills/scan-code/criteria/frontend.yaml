@@ -1,0 +1,213 @@
+# Frontend vulnerability validation criteria
+# Each entry defines what must be true/present/valid for a finding to be worth surfacing
+# Format: agent > vector > {candidates, cwe, severity, criteria}
+
+xss:
+  dom-xss:
+    candidates: "innerHTML assignments, dangerouslySetInnerHTML usage, document.write(), eval() with user data, DOM manipulation (createElement, appendChild with user input), URL parameters read then rendered (location.search, location.hash), v-html/ng-bind-html directives"
+    cwe: "CWE-79"
+    severity:
+      high: "User input directly rendered without sanitization, sensitive page context"
+      medium: "Partial sanitization present but bypassable"
+      low: "Limited injection context, minimal impact"
+    criteria:
+      - "Client-side code takes untrusted data and renders it to the DOM through dangerous sinks"
+      - "Dangerous sinks include innerHTML, outerHTML, document.write, eval, or DOM APIs that interpret strings as HTML/JavaScript"
+      - "No sanitization or encoding is applied before rendering (or sanitization is insufficient/missing)"
+      - "The vulnerability is in direct unsafe rendering, not in sanitizer implementation bugs"
+
+  mxss:
+    candidates: "HTML sanitizer usage (DOMPurify, sanitize-html, xss library), custom sanitization logic, allowlist-based HTML filtering, sanitizer configuration, mutation-prone sanitization patterns"
+    cwe: "CWE-79"
+    severity:
+      high: "Sanitizer bypass allows full script execution"
+      medium: "Bypass allows limited HTML injection"
+      low: "Theoretical bypass requiring specific browser versions"
+    criteria:
+      - "Code uses an HTML sanitizer library or custom sanitization logic to clean untrusted input"
+      - "Sanitizer implementation has bugs allowing bypass through HTML mutation or browser parsing quirks"
+      - "Sanitized HTML changes meaning after browser parsing, leading to script execution despite sanitization"
+      - "The vulnerability is in the sanitizer's implementation or configuration, distinct from having no sanitization at all"
+
+injection:
+  css-injection:
+    candidates: "Style attribute manipulation (element.style, setAttribute('style')), CSS property assignments (cssText, setProperty), dynamic stylesheet creation, style tag manipulation, CSS custom properties with user input"
+    cwe: "CWE-79"
+    severity:
+      high: "CSS injection enables data exfiltration or credential theft"
+      medium: "UI manipulation or deceptive overlays possible"
+      low: "Limited style changes, cosmetic impact only"
+    criteria:
+      - "User-controlled input is inserted into CSS context (style attributes, CSS properties, stylesheets)"
+      - "Input flows to CSS-specific sinks like element.style.cssText, setAttribute('style'), CSS custom properties"
+      - "No sanitization prevents malicious CSS that can exfiltrate data (via background URLs), manipulate UI, or enable clickjacking"
+      - "The vulnerability is CSS-specific injection, not HTML/JavaScript injection (which is covered by XSS vectors)"
+
+authn:
+  insecure-token-storage:
+    candidates: "localStorage.setItem for tokens/JWT/secrets, sessionStorage for auth data/API keys, cookie storage without HttpOnly/Secure, token persistence in DOM, auth state in window/global variables, sensitive data in client-side storage"
+    cwe: "CWE-922"
+    severity:
+      high: "Long-lived tokens (JWT, API keys) stored in localStorage"
+      medium: "Session tokens in sessionStorage with XSS vectors present"
+      low: "Short-lived tokens with limited scope"
+    criteria:
+      - "Code stores sensitive authentication data (tokens, credentials, API keys, secrets, session identifiers) in client-side storage"
+      - "Sensitive data is stored in localStorage, sessionStorage, or other JavaScript-accessible storage mechanisms"
+      - "Data persists in browser storage and is accessible to any JavaScript code in the same origin (vulnerable to XSS)"
+      - "Application has XSS vulnerabilities, or tokens are accessed by third-party scripts/extensions making storage exposure a realistic threat (not requiring attacker to already have arbitrary same-origin JavaScript execution)"
+      - "The vulnerability is storing sensitive authentication/secret data in insecure client-side storage, not how tokens are transmitted (token-url-exposure)"
+
+  token-url-exposure:
+    candidates: "location.href/hash/search with tokens, window.location assignments with auth params, URL construction with JWT/tokens (?token=, #access_token=), OAuth callback handling"
+    cwe: "CWE-598"
+    severity:
+      high: "Long-lived auth tokens in URL query parameters"
+      medium: "Short-lived tokens in URL, referrer leakage possible"
+      low: "Tokens in URL hash only (not sent to server)"
+    criteria:
+      - "Authentication tokens or session identifiers are passed in URL parameters"
+      - "Tokens can leak through browser history, referrer headers, or logs"
+      - "Token is not transmitted via secure headers or POST body"
+
+authz:
+  client-authz-bypass:
+    candidates: "Route guards (canActivate, beforeEnter, PrivateRoute), conditional rendering based on roles/permissions (isAdmin, hasPermission), client-side role checks, hidden privileged functions in code, UI element visibility logic based on authorization"
+    cwe: "CWE-602"
+    severity:
+      high: "Admin functions accessible through client manipulation"
+      medium: "Premium features or data accessible by bypassing client checks"
+      low: "UI-only restrictions with proper backend enforcement"
+    criteria:
+      - "Frontend code implements authorization logic (route guards, role checks, permission checks, conditional rendering)"
+      - "Authorization decisions are made in client-side JavaScript that can be manipulated or bypassed"
+      - "Privileged functionality exists in client code (even if UI-hidden) and can be invoked through DevTools or code modification"
+      - "Privileged functionality can be accessed through network request manipulation, URL manipulation, or application state changes without requiring same-origin JavaScript execution or browser debugging tools"
+      - "The vulnerability is trusting client-side authorization decisions, not the absence of authorization (which is a backend issue)"
+
+data_exposure:
+  sensitive-client-code:
+    candidates: "Hardcoded secrets in source files (API keys, tokens, passwords, private keys), sensitive string literals, configuration objects with credentials, embedded secrets in constants or variables"
+    cwe: "CWE-798"
+    severity:
+      high: "Production API keys, admin credentials, or private keys exposed"
+      medium: "Development/staging credentials or limited-scope keys"
+      low: "Public API keys or non-sensitive configuration"
+    criteria:
+      - "Sensitive data (API keys, tokens, passwords, secrets, private keys) is hardcoded in frontend source code"
+      - "Data is embedded as string literals, constants, or configuration values in JavaScript/TypeScript files"
+      - "Secrets are visible in browser DevTools, source code inspection, or extracted from bundles"
+      - "The vulnerability is hardcoded secrets in code, not secrets in storage (localStorage) or logs (console)"
+
+  console-sensitive:
+    candidates: "console.log/warn/error/debug statements, logging of variables containing sensitive data (tokens, passwords, PII, API keys), debug logging in production code"
+    cwe: "CWE-532"
+    severity:
+      high: "Credentials, tokens, or PII logged to console"
+      medium: "Session data or internal IDs logged"
+      low: "Non-sensitive debug information logged"
+    criteria:
+      - "Code includes console logging statements (console.log, console.warn, console.error, console.debug)"
+      - "Console statements log sensitive data (tokens, passwords, PII, API keys, session data)"
+      - "Logging exposes sensitive information visible in browser DevTools console"
+      - "Console logs are exposed through error reporting services, browser extensions with console access, shared debugging sessions, or third-party logging integrations (not solely through local DevTools access)"
+      - "The vulnerability is in console logging of sensitive data, not other debug code or hardcoded secrets"
+
+  sourcemap-exposure:
+    candidates: "Source map references in production bundles (sourceMappingURL comments), .map file generation in build configuration, webpack/vite/rollup source map settings, deployment configuration exposing source maps"
+    cwe: "CWE-540"
+    severity:
+      high: "Source maps expose proprietary algorithms or security logic"
+      medium: "Full application source code reconstructible"
+      low: "Minified code readable but limited sensitive content"
+    criteria:
+      - "Production deployment includes source map files (.map) or source map references in bundles"
+      - "Source maps are publicly accessible allowing reconstruction of original source code"
+      - "Build configuration generates and deploys source maps to production environment"
+      - "The vulnerability is about source map availability, not about what's revealed in the code itself"
+
+crypto:
+  client-crypto-impl:
+    candidates: "Custom encryption/decryption functions, hash implementations (MD5, SHA), crypto operations (btoa/atob for encryption, XOR operations), homemade crypto algorithms, client-side key derivation"
+    cwe: "CWE-327"
+    severity:
+      high: "Custom crypto protecting sensitive data or credentials"
+      medium: "Weak crypto for data integrity or non-critical encryption"
+      low: "Encoding misused as encryption for non-sensitive data"
+    criteria:
+      - "Code implements custom cryptographic operations (encryption, decryption, hashing) in JavaScript"
+      - "Uses homemade crypto algorithms or weak methods (btoa/atob for encryption, XOR, custom ciphers)"
+      - "Cryptographic implementation has security weaknesses or is not using established libraries correctly"
+      - "Weak cryptographic implementation is used to protect data that will be transmitted, stored, or used in security decisions, and weaknesses could expose sensitive information or enable tampering"
+      - "The vulnerability is in crypto implementation logic, not in key storage or random number generation"
+
+  weak-random:
+    candidates: "Math.random() usage for security (session IDs, tokens, CSRF tokens, nonces), predictable random number generation, Date.now() or timestamp-based randomness for security purposes"
+    cwe: "CWE-330"
+    severity:
+      high: "Predictable tokens for authentication or CSRF protection"
+      medium: "Weak random for session IDs or nonces"
+      low: "Non-cryptographic random for non-security purposes"
+    criteria:
+      - "Code uses Math.random() or other weak randomness sources for security-sensitive purposes"
+      - "Random values generated for tokens, session IDs, nonces, CSRF tokens, or other security mechanisms"
+      - "No cryptographically secure random number generator (crypto.getRandomValues, crypto.randomUUID) is used"
+      - "Weak random values are used in security-sensitive contexts where predictability enables attacks (token guessing, CSRF bypass, session hijacking, or cryptographic key compromise)"
+      - "The vulnerability is in random number generation quality, not in crypto algorithms or key management"
+
+third_party_risks:
+  missing-sri:
+    candidates: "External script tags (<script src=), external stylesheet links (<link rel='stylesheet' href=), CDN resource loading in HTML/JSX, third-party library imports from external URLs"
+    cwe: "CWE-353"
+    severity:
+      high: "Core application scripts loaded from CDN without SRI"
+      medium: "Analytics or tracking scripts without SRI"
+      low: "Stylesheets or fonts without SRI"
+    criteria:
+      - "HTML/JSX includes external script or stylesheet references loaded from CDN or third-party domains"
+      - "Script or link tags lack integrity attribute for subresource integrity verification"
+      - "External resources loaded without SRI protection enabling supply chain attacks if CDN is compromised"
+      - "The vulnerability is the absence of integrity attribute, not which CDN is used or whether dependencies have CVEs"
+
+open_redirect:
+  client-open-redirect:
+    candidates: "window.location assignments from user input (window.location =, location.href =, location.assign, location.replace), redirect query parameters (?redirect=, ?return=, ?next=), router navigation with user input (router.push, navigate, history.pushState), meta refresh tags, URL validation before redirect"
+    cwe: "CWE-601"
+    severity:
+      high: "Redirect to arbitrary external domains possible"
+      medium: "Redirect limited but phishing still possible"
+      low: "Redirect constrained to same domain or allowlist with edge cases"
+    criteria:
+      - "Client-side code performs redirects based on user-controlled input (URL parameters, hash fragments, user input)"
+      - "Redirect destination is not validated against allowlist before redirecting"
+      - "Code sets window.location, window.location.href, location.assign, or similar using untrusted data"
+      - "Attacker can redirect users to malicious external sites for phishing or malware distribution"
+
+postmessage:
+  missing-origin-validation:
+    candidates: "window.addEventListener('message'), postMessage event handlers, message.data usage without event.origin checks, cross-origin communication, iframe message passing, wildcard origins (targetOrigin: '*'), missing allowlist validation for message sources"
+    cwe: "CWE-346"
+    severity:
+      high: "Messages trigger authentication or state changes"
+      medium: "Messages affect application behavior or data"
+      low: "Messages used for non-sensitive cross-origin communication"
+    criteria:
+      - "Application implements postMessage event listener to receive messages from other windows/iframes"
+      - "Message handler does not validate event.origin before processing messages"
+      - "Messages from any origin are accepted and processed without allowlist or origin checks"
+      - "Message content is used in operations (potentially dangerous) without verifying the sender's trustworthiness"
+      - "Unvalidated messages can trigger privileged actions, modify application state, access sensitive data, execute code, or bypass security controls"
+
+prototype_pollution:
+  prototype-manipulation:
+    candidates: "Object.assign with user input, deep merge functions (_.merge, $.extend, Object.assign), bracket notation property access (obj[userInput]), __proto__ assignments, constructor.prototype access, deep clone/merge with untrusted data, recursive object assignment, spread operator with user objects"
+    cwe: "CWE-1321"
+    severity:
+      high: "Prototype pollution leads to RCE or authentication bypass"
+      medium: "Prototype pollution affects security checks or data integrity"
+      low: "Prototype pollution causes DoS or limited application misbehavior"
+    criteria:
+      - "Application performs object operations (merge, extend, clone, assign) or property assignments with user-controlled input"
+      - "Unsafe operations allow modifying Object.prototype or other prototype chains through special properties (__proto__, constructor.prototype, prototype)"
+      - "User input can inject properties into prototype chain affecting all objects in the application"
+      - "Prototype pollution affects security-sensitive code paths (authentication, authorization, validation) or can be chained with other vulnerabilities to achieve code execution, authentication bypass, or privilege escalation"

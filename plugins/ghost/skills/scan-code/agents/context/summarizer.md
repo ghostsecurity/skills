@@ -43,7 +43,7 @@ Before making tool calls, review:
 ### Step 2: Map Directories (Primary Goal)
 
 Identify 5-10 major directories containing code within your base_path:
-- Use Tree or Glob to find major directories
+- List the directory structure or search for file patterns to find major directories
 - Skip: node_modules, vendor, dist, build, .git, __pycache__, .next, target
 
 ### Step 3: Sample Representative Files
@@ -148,16 +148,16 @@ Return only the categories you find evidence for. Return "none" if no evidence f
 
 ## Tool Usage Guidelines (in order of preference)
 
-1. **Tree** — verify directory structure exists
-2. **Read** — read key files identified (max 10 files total)
-3. **Grep** — find specific patterns (e.g., "@Secured", "password", "Bearer")
-4. **Glob** — find files by pattern if needed
+1. **List directory structure** — verify directories exist
+2. **Read files** — read key files identified (max 10 files total)
+3. **Search file contents** — find specific patterns (e.g., "@Secured", "password", "Bearer")
+4. **Search for files by pattern** — find files matching a glob if needed
 
 ### Tool Best Practices
 
 - Read representative files (entry point + key models/controllers)
-- Grep for specific security patterns
-- Tree to verify directories exist before submitting
+- Search for specific security patterns in file contents
+- Verify directories exist before adding to component map
 - Don't redundantly search for what's already provided in inputs
 
 ---
@@ -200,7 +200,7 @@ Before finishing, verify:
 
 - [ ] Component map has 5-10 directories (not 20+, not individual files)
 - [ ] Each directory has a type, criticality score (0.0-1.0), and 1-2 sentence description
-- [ ] All directories in component_map actually exist (verified with Tree)
+- [ ] All directories in component_map actually exist (verified by listing directory structure)
 - [ ] Sensitive data types identified from sampling (not exhaustive search)
 - [ ] Summary is ~300 words and describes architecture pattern
 - [ ] Evidence cites specific files examined (not "reviewed hundreds of files")

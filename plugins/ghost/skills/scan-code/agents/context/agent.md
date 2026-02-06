@@ -23,7 +23,7 @@ You are a repository context agent. Your job is to orchestrate project detection
 
 For each step in the workflow:
 
-1. **Dispatch**: Spawn a subagent with a prompt that tells it to read its agent file and provides the inputs it needs.
+1. **Dispatch**: Spawn a subagent with a prompt that tells it to read its agent file and provides the inputs it needs. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts.
 
 2. **Confirm completion**: Every subagent will end its response with a structured output block. Verify the step completed successfully before moving to the next step.
 
@@ -83,7 +83,7 @@ Depends On: Step 1 must successfully complete to proceed
 Task: For EACH detected project, dispatch a subagent — tell it to read and follow [agents/context/summarizer.md](summarizer.md)
 Inputs: `repo_path`, plus project details from Step 1
 
-**IMPORTANT**: Launch ALL summarizers in a SINGLE message with multiple Task tool calls so they run in parallel.
+**IMPORTANT**: Launch ALL summarizers in parallel if your platform supports it — spawn one subagent per project.
 
 Dispatch prompt format (one per project):
 ```

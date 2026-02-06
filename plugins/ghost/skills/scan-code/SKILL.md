@@ -49,7 +49,7 @@ $ARGUMENTS
 
 For each step in the workflow:
 
-1. **Dispatch**: Spawn a subagent with a prompt that tells it to read its agent file and provides the path prefixes it needs. The context agent only needs `repo_path` and `cache_dir`. All other agents also need `scan_dir`. For example:
+1. **Dispatch**: Spawn a subagent with a prompt that tells it to read its agent file and provides the path prefixes it needs. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts. The context agent only needs `repo_path` and `cache_dir`. All other agents also need `scan_dir`. For example:
 
    > Read and follow the instructions in agents/plan/agent.md.
    >
@@ -89,10 +89,19 @@ Writes output to: `<cache_dir>/repo.md`
 
 Depends On: Step 1 must successfully complete to proceed
 Task: Dispatch a subagent — tell it to read and follow [agents/plan/agent.md](agents/plan/agent.md)
-Inputs: `repo_path`, `cache_dir`, `scan_dir`
+Inputs: `repo_path`, `cache_dir`, `scan_dir`, `base_commit` (optional), `head_commit` (optional)
 Reads from: `<cache_dir>/repo.md`
 Writes output to: `<scan_dir>/plan.md`
-Note: By default this is a full scan of the current branch/commit. If commit diff information is provided in the arguments, pass it to perform a diff scan.
+Note: By default this is a fresh scan (no commit args). If `base_commit` and `head_commit` are provided in `$ARGUMENTS`, pass them through to the plan subagent to perform an incremental diff scan. Example dispatch:
+
+> Read and follow the instructions in agents/plan/agent.md.
+>
+> ## Inputs
+> - repo_path: <repo_path>
+> - cache_dir: .ghost/cache
+> - scan_dir: .ghost/scans/<scan_id>
+> - base_commit: <base_commit>
+> - head_commit: <head_commit>
 
 **Step 3: Perform Analysis**
 

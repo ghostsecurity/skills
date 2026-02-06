@@ -1,0 +1,369 @@
+# Mobile vulnerability validation criteria
+# Each entry defines what must be true/present/valid for a finding to be worth surfacing
+# Format: agent > vector > {candidates, cwe, severity, criteria}
+
+insecure_data_storage:
+  unencrypted-local:
+    candidates: "File I/O operations (FileOutputStream, writeToFile, File.WriteAllBytes), sensitive data written to files, unencrypted file storage, document directory file writes"
+    cwe: "CWE-312"
+    severity:
+      high: "Credentials, tokens, or financial data stored in plaintext files"
+      medium: "PII or session data stored without encryption"
+      low: "Non-critical application data stored unencrypted"
+    criteria:
+      - "Code writes sensitive data (credentials, tokens, PII) to local files using file I/O operations"
+      - "File write operations (FileOutputStream, writeToFile, File.WriteAllBytes) store data in plaintext without encryption"
+      - "Sensitive data is accessible through file system access to application directories"
+      - "Files are exploitable through app vulnerabilities (path traversal, backup extraction, malicious apps with storage permissions) without requiring device root/jailbreak or physical device access as prerequisite"
+      - "The vulnerability is generic file I/O without encryption, not platform-specific storage APIs (SharedPreferences, Keychain, SQLite) or encryption keys (insecure-key-storage in crypto)"
+
+  sensitive-logs:
+    candidates: "Logging statements (Log.d, Log.i, Log.e, NSLog, os_log, print), log calls with sensitive data variables (tokens, passwords, PII), debug logging in production code"
+    cwe: "CWE-532"
+    severity:
+      high: "Credentials, auth tokens, or API keys logged"
+      medium: "PII or session identifiers logged"
+      low: "Internal IDs or non-sensitive debug data logged"
+    criteria:
+      - "Code writes sensitive data (tokens, passwords, PII) to system logs using Log.d, Log.i, NSLog, os_log, or print"
+      - "Log statements include sensitive variables or data that should not be logged"
+      - "Logs are accessible through logcat (Android) or Console (iOS) in production builds"
+      - "Logs are exploitable remotely through log aggregation services, crash reporting systems, cloud logging, or by malicious apps with log read permissions (not solely through physical device access or ADB debugging)"
+      - "The vulnerability is in logging sensitive data, not in where data is stored or transmitted"
+
+  keychain-misuse:
+    candidates: "iOS Keychain API usage (SecItemAdd, SecItemCopyMatching, SecItemUpdate), keychain access control settings (kSecAttrAccessible), authentication requirements for keychain items, biometric protection flags"
+    cwe: "CWE-522"
+    severity:
+      high: "Credentials stored with weak accessibility (kSecAttrAccessibleAlways)"
+      medium: "Tokens stored without biometric/passcode protection"
+      low: "Non-sensitive data with suboptimal keychain configuration"
+    criteria:
+      - "Code uses iOS Keychain API (SecItemAdd, SecItemCopyMatching) to store sensitive data"
+      - "Keychain items lack proper access controls (weak kSecAttrAccessible settings) or authentication requirements"
+      - "Sensitive data is stored without biometric protection or appropriate keychain protection levels"
+      - "Keychain data is exploitable through backup extraction, device exploits, malicious profiles, or weak access controls (without requiring jailbreak or physical access as prerequisite)"
+      - "The vulnerability is iOS Keychain-specific misconfiguration, not Android Keystore or other storage"
+
+  sqlite-encryption:
+    candidates: "SQLite database creation (SQLiteDatabase.openOrCreateDatabase, sqlite3_open, FMDB), database operations with sensitive data, absence of SQLCipher or encrypted database libraries"
+    cwe: "CWE-311"
+    severity:
+      high: "Credentials, financial data, or health records in unencrypted SQLite"
+      medium: "PII or user data stored without database encryption"
+      low: "Application preferences or non-sensitive data unencrypted"
+    criteria:
+      - "Code creates or uses SQLite database (SQLiteDatabase, sqlite3_open, FMDB, Core Data with SQLite) with sensitive data"
+      - "Database is not encrypted using SQLCipher or equivalent database encryption library"
+      - "Database files are readable from device file system without encryption protection"
+      - "Database is exploitable through app vulnerabilities, backup extraction, malicious apps with storage access, or file provider exploits (without requiring root/jailbreak access as prerequisite)"
+      - "The vulnerability is about unencrypted SQLite databases specifically, not other storage mechanisms"
+
+  backup-exposure:
+    candidates: "Android manifest allowBackup attribute, iOS Info.plist NSAllowsArbitraryLoads settings, backup exclusion configuration, file protection attributes for sensitive data"
+    cwe: "CWE-530"
+    severity:
+      high: "Backups contain credentials, tokens, or sensitive configuration"
+      medium: "User data or preferences exposed through backup"
+      low: "Non-sensitive app data included in backups"
+    criteria:
+      - "Android manifest has android:allowBackup='true' or lacks explicit backup exclusion for sensitive data"
+      - "iOS does not exclude sensitive files from backup using NSURLIsExcludedFromBackupKey"
+      - "Application allows system backups that include sensitive unencrypted data"
+      - "Backups are exploitable through cloud account compromise (iCloud/Google account), computer with backup access, or backup extraction tools (realistic threat model not requiring physical device access during exploitation)"
+      - "The vulnerability is in backup configuration, not in how data is stored in memory or transmitted"
+
+insecure_communication:
+  missing-cert-pinning:
+    candidates: "Network client configuration (OkHttpClient, URLSession, AFNetworking, Alamofire), TLS/SSL settings, certificate validation callbacks, pinning library usage (TrustKit, SSL pinning configuration)"
+    cwe: "CWE-295"
+    severity:
+      high: "No pinning for authentication or financial endpoints"
+      medium: "Pinning absent for sensitive data transmission"
+      low: "Public API endpoints without pinning"
+    criteria:
+      - "Application makes HTTPS connections to backend servers"
+      - "No certificate pinning implementation validates specific server certificates or public keys"
+      - "Network client accepts any valid certificate signed by trusted CAs without pinning verification"
+      - "Application transmits highly sensitive data (authentication credentials, financial data, PII) where MitM via compromised CA or network interception poses realistic risk"
+      - "The vulnerability is the absence of certificate pinning, not weak TLS or cleartext traffic"
+
+  cleartext-traffic:
+    candidates: "HTTP URL usage (http:// in strings or constants), Android manifest usesCleartextTraffic attribute, iOS App Transport Security (ATS) exceptions (NSAllowsArbitraryLoads), network security config allowing cleartext"
+    cwe: "CWE-319"
+    severity:
+      high: "Credentials or tokens transmitted over HTTP"
+      medium: "User data sent over unencrypted connections"
+      low: "Non-sensitive content loaded via HTTP"
+    criteria:
+      - "Application uses HTTP URLs or allows cleartext (unencrypted) network traffic"
+      - "Network connections use http:// instead of https:// or manifest/config explicitly allows cleartext"
+      - "Sensitive data (credentials, tokens, PII) could be transmitted over unencrypted connections"
+      - "The vulnerability is using HTTP/cleartext, not weak TLS configuration (which is HTTPS with weak settings)"
+
+  weak-tls:
+    candidates: "TLS/SSL version specification (SSLContext.getInstance, kTLSProtocol12, TLS_1_0), cipher suite configuration, protocol version settings, deprecated TLS version usage"
+    cwe: "CWE-326"
+    severity:
+      high: "SSLv3 or TLS 1.0 enabled for sensitive connections"
+      medium: "TLS 1.1 or weak cipher suites configured"
+      low: "Suboptimal cipher preferences but modern protocols used"
+    criteria:
+      - "Application configures TLS/SSL with weak protocols (SSLv3, TLS 1.0, TLS 1.1) or weak cipher suites"
+      - "Code explicitly specifies deprecated TLS versions or insecure cryptographic algorithms"
+      - "TLS configuration does not enforce modern protocols (TLS 1.2+) and strong cipher suites"
+      - "The vulnerability is in TLS protocol/cipher configuration, not absence of TLS (cleartext) or pinning"
+
+authn:
+  biometric-bypass:
+    candidates: "Biometric authentication implementation (BiometricPrompt, LocalAuthentication, TouchID, FaceID), biometric evaluation callbacks, authentication success/failure handling, fallback authentication mechanisms"
+    cwe: "CWE-287"
+    severity:
+      high: "Biometric bypass grants full account access or financial operations"
+      medium: "Bypass allows access to sensitive features"
+      low: "Bypass affects convenience features with limited impact"
+    criteria:
+      - "Application implements biometric authentication (TouchID, FaceID, fingerprint, BiometricPrompt)"
+      - "Authentication decision is made client-side without requiring server-side validation"
+      - "Biometric authentication can be bypassed through application logic manipulation or weak fallback mechanisms"
+      - "Bypassing biometric authentication grants access to sensitive functionality or data without requiring server-side validation of authentication state"
+      - "The vulnerability is in biometric auth implementation, not in how auth tokens are stored or sessions managed"
+
+  missing-root-detection:
+    candidates: "Root detection checks (RootBeer library, SafetyNet API, jailbreak detection), su binary checks, Cydia detection, system file modifications checks, runtime integrity validation"
+    cwe: "CWE-919"
+    severity:
+      high: "Financial or high-security app without root/jailbreak detection"
+      medium: "App with sensitive data lacks device integrity checks"
+      low: "General app with optional security benefit from detection"
+    criteria:
+      - "Application performs sensitive operations (financial transactions, authentication, accessing sensitive data)"
+      - "Code does not check for rooted (Android) or jailbroken (iOS) device indicators"
+      - "No runtime integrity checks validate device security state before sensitive operations"
+      - "Application makes security-critical decisions client-side that depend on device integrity (local encryption, client-side validation, secure storage) and would be compromised on rooted/jailbroken devices"
+      - "The vulnerability is the absence of root/jailbreak detection, not bypassed detection (which would be a different issue)"
+
+  insecure-session:
+    candidates: "Session token generation, session ID creation, session timeout configuration, logout implementation, session invalidation logic, session storage and lifecycle management"
+    cwe: "CWE-613"
+    severity:
+      high: "Sessions never expire or tokens predictable"
+      medium: "Incomplete logout or excessive session timeout"
+      low: "Minor session management issues"
+    criteria:
+      - "Application generates or manages session tokens/identifiers for authenticated users"
+      - "Session management has flaws: weak token generation, missing timeout/expiration, incomplete logout/invalidation, or insecure token storage in memory"
+      - "Session tokens can be hijacked, reused after logout, or remain valid indefinitely"
+      - "Session vulnerabilities are exploitable through network interception, app vulnerabilities, or malicious apps (not requiring root access or device debugging to extract tokens)"
+      - "The vulnerability is in session lifecycle management, not initial authentication (biometric-bypass) or persistent storage (insecure-sharedprefs)"
+
+crypto:
+  weak-encryption:
+    candidates: "Encryption operations (Cipher.getInstance, CCCrypt, AES initialization), weak algorithm usage (DES, RC4, ECB mode), insufficient key lengths, deprecated encryption methods"
+    cwe: "CWE-327"
+    severity:
+      high: "DES or RC4 used for credential encryption"
+      medium: "ECB mode or weak key length for sensitive data"
+      low: "Suboptimal algorithm for non-critical encryption"
+    criteria:
+      - "Application uses standard cryptographic libraries but with weak algorithms (DES, 3DES, RC4) or insecure modes (ECB)"
+      - "Encryption implementation uses insufficient key lengths or deprecated encryption methods"
+      - "Code specifies weak cryptographic parameters despite using standard crypto APIs"
+      - "Encrypted data is transmitted over network, stored in accessible locations, or cached, and breaking the encryption would expose sensitive information to attackers"
+      - "The vulnerability is weak algorithm choice, not custom implementation (that's custom-crypto) or key management"
+
+  insecure-key-storage:
+    candidates: "Encryption key storage in Android SharedPreferences (getSharedPreferences, putString with keys), iOS UserDefaults, plain files, unencrypted SQLite without Keychain/Keystore protection, key persistence without hardware-backed security, runtime key material storage"
+    cwe: "CWE-321"
+    severity:
+      high: "Encryption keys stored in SharedPreferences or UserDefaults"
+      medium: "Keys in SQLite without additional protection"
+      low: "Session keys with limited lifetime stored insecurely"
+    criteria:
+      - "Application generates or receives encryption keys or sensitive cryptographic material at runtime and stores them persistently"
+      - "Keys are stored in insecure locations: Android SharedPreferences (without EncryptedSharedPreferences), iOS UserDefaults, plain files, unencrypted SQLite databases"
+      - "Keys lack proper protection: no Keychain (iOS) or Keystore (Android) with hardware-backed security, no encryption at rest"
+      - "Keys are exploitable through app vulnerabilities, backup extraction, malicious apps with storage access, or memory dumps (without requiring root/jailbreak as prerequisite)"
+      - "The vulnerability is runtime key storage in insecure locations, not hardcoded keys in source code (that's hardcoded-secret in reverse_engineering)"
+
+  custom-crypto:
+    candidates: "Custom encryption/decryption functions, homemade crypto algorithms, XOR-based encryption, custom hash implementations, non-standard cryptographic operations"
+    cwe: "CWE-327"
+    severity:
+      high: "Custom crypto for credential or financial data protection"
+      medium: "Homemade encryption for sensitive user data"
+      low: "XOR or simple encoding for non-critical obfuscation"
+    criteria:
+      - "Application implements custom encryption/decryption algorithms instead of using standard crypto libraries"
+      - "Code contains homemade cryptographic operations (XOR encryption, custom ciphers, roll-your-own crypto)"
+      - "Custom implementation likely has vulnerabilities or weaknesses compared to vetted libraries"
+      - "Custom cryptographic implementation is used to protect data that will be transmitted, stored, or processed, and weaknesses could expose sensitive information"
+      - "The vulnerability is implementing crypto, not using weak standard algorithms (that's weak-encryption)"
+
+code_tampering:
+  missing-obfuscation:
+    candidates: "Build configuration files (build.gradle, Podfile, proguard-rules.pro), ProGuard/R8 settings, obfuscation flags, minification settings, code shrinking configuration"
+    cwe: "CWE-656"
+    severity:
+      high: "Security-critical app with no obfuscation"
+      medium: "App with proprietary logic lacking obfuscation"
+      low: "General app where obfuscation would provide defense in depth"
+    criteria:
+      - "Application build configuration lacks code obfuscation (ProGuard, R8, or equivalent code protection)"
+      - "Class names, method names, and strings are readable in decompiled application binary"
+      - "Application contains hardcoded secrets, sensitive algorithms, proprietary business logic, or security controls that would be exposed through decompilation"
+      - "Absence of obfuscation facilitates reverse engineering of application logic and secrets"
+      - "The vulnerability is lack of obfuscation, not specific debug flags (debug-enabled) or what information is exposed (reverse_engineering vectors)"
+
+  debug-enabled:
+    candidates: "AndroidManifest.xml debuggable attribute, build variant configurations, debug flags in Info.plist, DEBUG preprocessor macros, build configuration files"
+    cwe: "CWE-489"
+    severity:
+      high: "Debug mode in production for financial or security app"
+      medium: "Debuggable flag allows runtime manipulation"
+      low: "Debug mode with limited exploitation potential"
+    criteria:
+      - "Application is configured with debug mode or debuggable flag enabled in production/release builds"
+      - "AndroidManifest.xml has android:debuggable='true' or Info.plist has debug flags in release configuration"
+      - "Debug mode allows debugger attachment and runtime manipulation in production app"
+      - "Debug mode enables runtime manipulation that could bypass security controls, extract sensitive data, or modify application behavior to achieve unauthorized access"
+      - "The vulnerability is explicit debug flag in release builds, not missing obfuscation or integrity checks"
+
+  insecure-ipc:
+    candidates: "ContentProvider implementations, BroadcastReceiver registrations, Service bindings, Intent handling, exported component definitions, IPC permission checks"
+    cwe: "CWE-927"
+    severity:
+      high: "IPC allows execution of privileged operations"
+      medium: "IPC exposes sensitive data or state manipulation"
+      low: "IPC has minor validation issues"
+    criteria:
+      - "Application implements inter-process communication (IPC) mechanisms accepting data from other applications"
+      - "IPC endpoints (ContentProvider, BroadcastReceiver, Service) lack proper sender validation or permission checks"
+      - "Untrusted applications can send malicious data through IPC channels"
+      - "Malicious IPC data can trigger unauthorized actions, bypass security controls, access sensitive data, or cause privilege escalation"
+      - "The vulnerability is insecure IPC data validation, not component export permissions (exported-component)"
+
+  exported-component:
+    candidates: "AndroidManifest.xml exported attributes, Activity/Service/Receiver component declarations, intent-filter definitions, permission requirements on components"
+    cwe: "CWE-926"
+    severity:
+      high: "Exported component performs sensitive operations without permissions"
+      medium: "Component exposes functionality that should be restricted"
+      low: "Exported component with limited security impact"
+    criteria:
+      - "Android application declares components (Activity, Service, BroadcastReceiver, ContentProvider) as exported in manifest"
+      - "Exported components lack proper android:permission protection or signature-level permission requirements"
+      - "Components are accessible and invokable by any application on the device"
+      - "Exported components perform sensitive operations (access private data, modify state, execute privileged actions) that should not be accessible to arbitrary applications"
+      - "The vulnerability is component export without permission protection, not IPC data validation (insecure-ipc)"
+
+reverse_engineering:
+  hardcoded-secret:
+    candidates: "Hardcoded API keys, tokens, passwords, OAuth secrets, signing keys in source code, embedded credentials in string literals or constants"
+    cwe: "CWE-798"
+    severity:
+      high: "Production API keys, signing keys, or admin credentials"
+      medium: "Development credentials or limited-scope tokens"
+      low: "Public API keys or non-sensitive configuration"
+    criteria:
+      - "Secrets, API keys, passwords, OAuth tokens, signing keys, or encryption keys are hardcoded as string literals or constants in source code"
+      - "Secrets are embedded in application binary and extractable through static analysis, decompilation, or reverse engineering"
+      - "No runtime secret derivation, secure enclave retrieval, key derivation functions, or obfuscation protects the secrets"
+      - "The vulnerability is hardcoded secrets/keys in code, not API URLs/endpoints (api-in-code) or business logic (logic-exposure)"
+
+  api-in-code:
+    candidates: "Hardcoded API URLs, endpoint definitions, server addresses, base URL strings, API route constants, backend configuration in source code"
+    cwe: "CWE-200"
+    severity:
+      high: "Internal/admin API endpoints exposed"
+      medium: "Undocumented API endpoints revealed"
+      low: "Public API structure exposed"
+    criteria:
+      - "API endpoints, server URLs, base addresses, or backend configuration are hardcoded in application source code"
+      - "Endpoint information is visible through static analysis and reveals API structure"
+      - "Exposed API endpoints are non-public, internal-only, or reveal undocumented attack surface that should not be discoverable by client applications"
+      - "Hardcoded URLs expose backend architecture and potential attack surface"
+      - "The vulnerability is hardcoded API endpoints, not API secrets/keys (hardcoded-secret) or business logic (logic-exposure)"
+
+  logic-exposure:
+    candidates: "Business rules implementation, pricing calculations, validation logic, authorization checks in client code, proprietary algorithms without obfuscation"
+    cwe: "CWE-200"
+    severity:
+      high: "Pricing algorithms or financial logic exposed"
+      medium: "Proprietary algorithms or business rules visible"
+      low: "Non-critical logic readable through decompilation"
+    criteria:
+      - "Application contains sensitive business logic, proprietary algorithms, validation rules, or pricing calculations in client code"
+      - "Critical business logic is exposed through lack of obfuscation and can be understood through reverse engineering"
+      - "Exposed business logic includes security-critical validation, pricing, or authorization decisions made client-side without equivalent server-side enforcement"
+      - "Logic exposure enables manipulation of business processes or circumvention of controls"
+      - "The vulnerability is exposed business logic, not lack of obfuscation itself (missing-obfuscation) or missing runtime checks (missing-anti-tamper)"
+
+  missing-anti-tamper:
+    candidates: "Code integrity checks, signature verification, checksum validation, runtime modification detection, anti-debugging measures, tamper detection mechanisms"
+    cwe: "CWE-693"
+    severity:
+      high: "Financial or DRM app without tamper detection"
+      medium: "Security app lacking integrity verification"
+      low: "General app where anti-tamper would add defense"
+    criteria:
+      - "Application performs sensitive operations but lacks runtime integrity checks or anti-tampering mechanisms"
+      - "Code does not detect or respond to application modifications, repackaging, or runtime manipulation"
+      - "No signature verification, checksum validation, code integrity checks, or anti-debugging measures are implemented"
+      - "Application performs security-critical operations that rely on code integrity, and tampering would enable bypassing security controls, privilege escalation, or unauthorized access"
+      - "The vulnerability is absence of tamper detection, not debug flags (debug-enabled) or root detection (missing-root-detection)"
+
+platform_specific:
+  insecure-deeplink:
+    candidates: "Deep link handlers (Intent filters with data schemes, URL scheme handlers), deep link parameter parsing, URI data extraction, deep link action routing, user confirmation for sensitive deep link actions"
+    cwe: "CWE-939"
+    severity:
+      high: "Deep links trigger financial transactions or auth flows"
+      medium: "Deep links affect sensitive application state"
+      low: "Deep links with limited security impact"
+    criteria:
+      - "Application handles deep links or universal links (URLs that launch the app with parameters)"
+      - "Deep link URL parameters are not validated, sanitized, or restricted before use in sensitive operations"
+      - "Deep links can trigger sensitive actions (payments, data access, navigation) without proper validation or user confirmation"
+      - "The vulnerability is deep link parameter validation, not Intent extras (intent-manipulation) or URL scheme registration (url-scheme-hijack)"
+
+  intent-manipulation:
+    candidates: "Intent handling in Activities (getIntent, onNewIntent), Intent extras extraction (getStringExtra, getSerializableExtra), implicit Intent handling, Intent data URI processing, startActivity/startActivityForResult flows"
+    cwe: "CWE-927"
+    severity:
+      high: "Intent manipulation grants unauthorized access"
+      medium: "Malicious intents affect application behavior"
+      low: "Intent handling with minor validation gaps"
+    criteria:
+      - "Android Activity receives and processes Intent data or Intent extras from other applications or components"
+      - "Intent extras, data URI, or serialized objects from getIntent/onNewIntent are used without validation"
+      - "Malicious Intent data can trigger unintended behavior, navigation to wrong screens, or access to unauthorized functionality"
+      - "The vulnerability is Intent data handling in Activities, not ContentProvider/Service IPC (insecure-ipc) or component export settings (exported-component)"
+
+  url-scheme-hijack:
+    candidates: "URL scheme registration in Info.plist (CFBundleURLSchemes), openURL handler implementation, canOpenURL checks, universal links configuration, associated domains entitlements"
+    cwe: "CWE-939"
+    severity:
+      high: "URL scheme used for authentication can be hijacked"
+      medium: "Scheme hijacking allows data interception"
+      low: "Low-value scheme with limited hijack impact"
+    criteria:
+      - "iOS application registers custom URL scheme (myapp://) in Info.plist CFBundleURLSchemes"
+      - "Application lacks universal links or associated domains configuration for secure app linking"
+      - "Custom URL scheme can be hijacked by malicious apps registering the same scheme"
+      - "URL scheme hijacking allows malicious apps to intercept deep links containing sensitive data (auth tokens, user info) or redirect users to phishing/malicious content"
+      - "The vulnerability is URL scheme registration/interception protection (iOS-specific), not deep link parameter validation (insecure-deeplink)"
+
+  webview-vuln:
+    candidates: "WebView instantiation (android.webkit.WebView, WKWebView), JavaScript bridge methods (@JavascriptInterface, addJavascriptInterface), JavaScript enabled settings, WebView content loading (loadUrl, loadData), shouldOverrideUrlLoading implementations"
+    cwe: "CWE-749"
+    severity:
+      high: "JS bridge exposes sensitive native functionality"
+      medium: "WebView loads untrusted content with bridges enabled"
+      low: "WebView configuration with minor security issues"
+    criteria:
+      - "Application uses WebView (android.webkit.WebView, WKWebView) to display web content"
+      - "WebView exposes JavaScript bridge to native code (@JavascriptInterface, addJavascriptInterface) with sensitive functionality"
+      - "WebView loads untrusted content with JavaScript enabled, or bridge methods lack proper access controls"
+      - "JavaScript in WebView can invoke native bridge methods to access device functionality, sensitive data, or bypass security controls"
+      - "The vulnerability is WebView JavaScript bridge security, not other platform mechanisms"
