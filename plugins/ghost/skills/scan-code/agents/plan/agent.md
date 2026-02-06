@@ -24,9 +24,11 @@ You are a scan planning sub-orchestrator. Your job is to determine what security
 
 ## How to Run Each Step
 
+**CRITICAL**: You are a sub-orchestrator. You do NOT read leaf agent files or execute their logic yourself. You ONLY spawn subagents and wait for their results. Each step below gives you a dispatch prompt — pass that prompt to a new subagent. The subagent will read its own agent file and do the work.
+
 For each step in the workflow:
 
-1. **Dispatch**: Spawn a subagent with a prompt that tells it to read its agent file and provides the inputs it needs. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts.
+1. **Dispatch**: Spawn a subagent whose prompt is the dispatch prompt shown in the step. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts. Do NOT read the agent .md files yourself.
 
 2. **Confirm completion**: Every subagent will end its response with structured output. Verify the step completed successfully before moving to the next step.
 
@@ -73,10 +75,8 @@ Plan Progress Task/Subagent Tracking:
 ### Step 1: Diff Analyzer (DIFF MODE only — skip entirely for FRESH MODE)
 
 Depends On: Setup
-Task: Dispatch a subagent — tell it to read and follow [agents/plan/diff-analyzer.md](diff-analyzer.md)
-Inputs: `repo_path`, `cache_dir`, `base_commit`, `head_commit`
 
-Dispatch prompt format:
+Dispatch prompt:
 ```
 Read and follow the instructions in agents/plan/diff-analyzer.md.
 
@@ -96,10 +96,8 @@ After the diff analyzer returns, **write its output** to `<scan_dir>/diff-analys
 ### Step 2: Planner
 
 Depends On: Step 1 (DIFF MODE) or Setup (FRESH MODE)
-Task: Dispatch a subagent — tell it to read and follow [agents/plan/planner.md](planner.md)
-Inputs: `cache_dir`, `mode`, `diff_analysis_file` (incremental only)
 
-Dispatch prompt format:
+Dispatch prompt (omit `diff_analysis_file` for fresh mode):
 ```
 Read and follow the instructions in agents/plan/planner.md.
 
@@ -109,8 +107,6 @@ Read and follow the instructions in agents/plan/planner.md.
 - diff_analysis_file: <scan_dir>/diff-analysis.md
 ```
 
-Omit `diff_analysis_file` for fresh mode.
-
 The planner will read `repo.md`, `criteria/index.yaml`, and the diff analysis file itself. It will return structured markdown per project with reasoning and recommended scans.
 
 ---
@@ -118,7 +114,7 @@ The planner will read `repo.md`, `criteria/index.yaml`, and the diff analysis fi
 ### Step 3: Aggregate and Write plan.md
 
 Depends On: Step 2 must successfully complete
-Task: Combine all outputs into `<scan_dir>/plan.md` using the template at [agents/plan/template-plan.md](template-plan.md)
+Task: Combine all outputs into `<scan_dir>/plan.md` using the template at agents/plan/template-plan.md (read it for the exact format)
 
 **Data sourcing per section:**
 - `## Scan Mode` → determined in Setup (fresh or incremental)

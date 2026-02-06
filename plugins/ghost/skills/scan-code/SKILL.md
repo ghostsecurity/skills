@@ -47,16 +47,11 @@ $ARGUMENTS
 
 ## Orchestrator: How to Run Each Step
 
+**CRITICAL**: You are an orchestrator. You do NOT read agent files or execute their logic yourself. You ONLY spawn subagents and wait for their results. Each step below gives you a dispatch prompt — pass that prompt verbatim to a new subagent. The subagent will read its own agent file and do the work.
+
 For each step in the workflow:
 
-1. **Dispatch**: Spawn a subagent with a prompt that tells it to read its agent file and provides the path prefixes it needs. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts. The context agent only needs `repo_path` and `cache_dir`. All other agents also need `scan_dir`. For example:
-
-   > Read and follow the instructions in agents/plan/agent.md.
-   >
-   > ## Inputs
-   > - repo_path: <repo_path>
-   > - cache_dir: .ghost/cache
-   > - scan_dir: .ghost/scans/<scan_id>
+1. **Dispatch**: Spawn a subagent whose prompt is the dispatch prompt shown in the step. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts. Do NOT read the agent .md files yourself.
 
 2. **Confirm completion**: Every subagent will end its response with a structured `## Outputs` block. Verify the step completed successfully before moving to the next step.
 
@@ -81,40 +76,61 @@ Scan Progress Task Tracking:
 **Step 1: Gather codebase context**
 
 Depends On: None
-Task: Dispatch a subagent — tell it to read and follow [agents/context/agent.md](agents/context/agent.md)
-Inputs: `repo_path`, `cache_dir`
 Writes output to: `<cache_dir>/repo.md`
+
+Dispatch prompt:
+```
+Read and follow the instructions in agents/context/agent.md.
+
+## Inputs
+- repo_path: <repo_path>
+- cache_dir: <cache_dir>
+```
 
 **Step 2: Determine what to scan**
 
 Depends On: Step 1 must successfully complete to proceed
-Task: Dispatch a subagent — tell it to read and follow [agents/plan/agent.md](agents/plan/agent.md)
-Inputs: `repo_path`, `cache_dir`, `scan_dir`, `base_commit` (optional), `head_commit` (optional)
-Reads from: `<cache_dir>/repo.md`
 Writes output to: `<scan_dir>/plan.md`
-Note: By default this is a fresh scan (no commit args). If `base_commit` and `head_commit` are provided in `$ARGUMENTS`, pass them through to the plan subagent to perform an incremental diff scan. Example dispatch:
+Note: If `base_commit` and `head_commit` are provided in `$ARGUMENTS`, include them in the dispatch prompt. Omit them for a fresh scan.
 
-> Read and follow the instructions in agents/plan/agent.md.
->
-> ## Inputs
-> - repo_path: <repo_path>
-> - cache_dir: .ghost/cache
-> - scan_dir: .ghost/scans/<scan_id>
-> - base_commit: <base_commit>
-> - head_commit: <head_commit>
+Dispatch prompt:
+```
+Read and follow the instructions in agents/plan/agent.md.
+
+## Inputs
+- repo_path: <repo_path>
+- cache_dir: <cache_dir>
+- scan_dir: <scan_dir>
+- base_commit: <base_commit>
+- head_commit: <head_commit>
+```
 
 **Step 3: Perform Analysis**
 
 Depends On: Step 2 must successfully complete to proceed
-Task: Dispatch a subagent — tell it to read and follow [agents/analysis/agent.md](agents/analysis/agent.md)
-Inputs: `repo_path`, `cache_dir`, `scan_dir`
-Reads from: `<cache_dir>/repo.md`, `<scan_dir>/plan.md`
 Writes output to: `<scan_dir>/findings/`
+
+Dispatch prompt:
+```
+Read and follow the instructions in agents/analysis/agent.md.
+
+## Inputs
+- repo_path: <repo_path>
+- cache_dir: <cache_dir>
+- scan_dir: <scan_dir>
+```
 
 **Step 4: Create structured summary**
 
 Depends On: Step 3 must successfully complete to proceed
-Task: Dispatch a subagent — tell it to read and follow [agents/summary/agent.md](agents/summary/agent.md)
-Inputs: `repo_path`, `cache_dir`, `scan_dir`
-Reads from: `<cache_dir>/repo.md`, `<scan_dir>/plan.md`, `<scan_dir>/findings/`
 Writes output to: `<scan_dir>/report.md`
+
+Dispatch prompt:
+```
+Read and follow the instructions in agents/summary/agent.md.
+
+## Inputs
+- repo_path: <repo_path>
+- cache_dir: <cache_dir>
+- scan_dir: <scan_dir>
+```

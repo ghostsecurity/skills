@@ -21,9 +21,11 @@ You are a repository context agent. Your job is to orchestrate project detection
 
 ## How to Run Each Step
 
+**CRITICAL**: You are a sub-orchestrator. You do NOT read leaf agent files or execute their logic yourself. You ONLY spawn subagents and wait for their results. Each step below gives you a dispatch prompt — pass that prompt to a new subagent. The subagent will read its own agent file and do the work.
+
 For each step in the workflow:
 
-1. **Dispatch**: Spawn a subagent with a prompt that tells it to read its agent file and provides the inputs it needs. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts.
+1. **Dispatch**: Spawn a subagent whose prompt is the dispatch prompt shown in the step. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts. Do NOT read the agent .md files yourself.
 
 2. **Confirm completion**: Every subagent will end its response with a structured output block. Verify the step completed successfully before moving to the next step.
 
@@ -61,11 +63,9 @@ Context Progress Task/Subagent Tracking:
 **Step 1: Detect projects in the repository**
 
 Depends On: None
-Task: Dispatch a subagent — tell it to read and follow [agents/context/detector.md](detector.md)
-Inputs: `repo_path`
 Returns: List of detected projects with: id, type, base_path, languages, frameworks, dependency_files, extensions, evidence; plus a repository summary
 
-Dispatch prompt format:
+Dispatch prompt:
 ```
 Read and follow the instructions in agents/context/detector.md.
 
@@ -80,12 +80,10 @@ The detector will return a structured `## Detected Projects` section. Parse this
 **Step 2: Summarize each detected project (parallel)**
 
 Depends On: Step 1 must successfully complete to proceed
-Task: For EACH detected project, dispatch a subagent — tell it to read and follow [agents/context/summarizer.md](summarizer.md)
-Inputs: `repo_path`, plus project details from Step 1
 
 **IMPORTANT**: Launch ALL summarizers in parallel if your platform supports it — spawn one subagent per project.
 
-Dispatch prompt format (one per project):
+Dispatch prompt (one per project):
 ```
 Read and follow the instructions in agents/context/summarizer.md.
 
@@ -128,7 +126,7 @@ Combine:
   - Component Map (from summarizer)
   - Evidence (from summarizer)
 
-The output file must follow the structure in [agents/context/template-repo.md](template-repo.md).
+The output file must follow the structure in agents/context/template-repo.md (read it for the exact format).
 
 ---
 
