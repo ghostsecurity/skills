@@ -66,10 +66,11 @@ If a subagent fails or returns an error instead of a valid `## Outputs` block:
 Track your progress:
 
 Scan Progress Task Tracking:
-- [ ] Step 1: Delegate to a Subagent: Gather codebase **context**
-- [ ] Step 2: Delegate to a Subagent: Determine what to **scan** (depends on step 1)
-- [ ] Step 3: Delegate to a Subagent: Perform **analysis** (depends on step 2)
-- [ ] Step 4: Delegate to a Subagent: Create structured **summary** (depends on step 3)
+- [ ] Step 1: Delegate to a Subagent: Gather codebase **context** (depends on nothing)
+- [ ] Step 2: Delegate to a Subagent: **Plan** what to scan (depends on step 1)
+- [ ] Step 3: Delegate to a Subagent: **Analyze** code for vulnerabilities (depends on step 2)
+- [ ] Step 4: Delegate to a Subagent: **Verify** findings (depends on step 3)
+- [ ] Step 5: Delegate to a Subagent: **Summarize** results (depends on step 4)
 
 ## Steps Index
 
@@ -87,7 +88,7 @@ Read and follow the instructions in agents/context/agent.md.
 - cache_dir: <cache_dir>
 ```
 
-**Step 2: Determine what to scan**
+**Step 2: Plan what to scan**
 
 Depends On: Step 1 must successfully complete to proceed
 Writes output to: `<scan_dir>/plan.md`
@@ -105,14 +106,14 @@ Read and follow the instructions in agents/plan/agent.md.
 - head_commit: <head_commit>
 ```
 
-**Step 3: Perform Analysis**
+**Step 3: Analyze code for vulnerabilities**
 
 Depends On: Step 2 must successfully complete to proceed
 Writes output to: `<scan_dir>/findings/`
 
 Dispatch prompt:
 ```
-Read and follow the instructions in agents/analysis/agent.md.
+Read and follow the instructions in agents/analyze/agent.md.
 
 ## Inputs
 - repo_path: <repo_path>
@@ -120,14 +121,29 @@ Read and follow the instructions in agents/analysis/agent.md.
 - scan_dir: <scan_dir>
 ```
 
-**Step 4: Create structured summary**
+**Step 4: Verify findings**
 
 Depends On: Step 3 must successfully complete to proceed
+Writes output to: `<scan_dir>/findings/` (updates or deletes finding files)
+
+Dispatch prompt:
+```
+Read and follow the instructions in agents/verify/agent.md.
+
+## Inputs
+- repo_path: <repo_path>
+- cache_dir: <cache_dir>
+- scan_dir: <scan_dir>
+```
+
+**Step 5: Summarize results**
+
+Depends On: Step 4 must successfully complete to proceed
 Writes output to: `<scan_dir>/report.md`
 
 Dispatch prompt:
 ```
-Read and follow the instructions in agents/summary/agent.md.
+Read and follow the instructions in agents/summarize/agent.md.
 
 ## Inputs
 - repo_path: <repo_path>
