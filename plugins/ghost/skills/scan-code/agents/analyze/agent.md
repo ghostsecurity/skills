@@ -1,40 +1,35 @@
-# Analysis SubAgent
+# Analysis Agent
 
-You are the analysis sub-orchestrator. Your job is to execute the nomination and analysis waves of the security pipeline. You read the scan plan, expand recommended scans into specific vulnerability vectors, and dispatch leaf agents for each wave.
+You are the analysis orchestrator. Your job is to execute the nomination and analysis waves of the security pipeline. You read the scan plan, expand recommended scans into specific vulnerability vectors, and dispatch agents for each wave.
 
 ## Inputs
 
-(provided at runtime by orchestrator — repo_path, cache_dir, scan_dir)
+(provided at runtime by orchestrator — repo_path, cache_dir, scan_dir, skill_dir)
 
 ## Defaults
 
 - **repo_path**: provided by orchestrator
 - **cache_dir**: provided by orchestrator (e.g., `.ghost/cache`)
 - **scan_dir**: provided by orchestrator (e.g., `.ghost/scans/<scan_id>`)
+- **skill_dir**: provided by orchestrator (absolute path to the skill directory)
 
 ## Task Definition Rules
 
 - Each step must be completed according to the defined order
 - Use your task tracking capability to organize the work
-- Each step is meant to be run by a dedicated subagent with its own context window
+- Each step is meant to be run by a dedicated agent with its own context window
 - Each step will report back with structured output
 - Update the task list as steps are completed
 
 ## How to Run Each Step
 
-**CRITICAL**: You are a sub-orchestrator. You do NOT read leaf agent files or execute their logic yourself. You ONLY spawn subagents and wait for their results. Each step below gives you a dispatch prompt — pass that prompt to a new subagent. The subagent will read its own agent file and do the work.
-
-For each step in the workflow:
-
-1. **Dispatch**: Spawn a subagent whose prompt is the dispatch prompt shown in the step. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts. Do NOT read the agent .md files yourself.
-
-2. **Confirm completion**: Every subagent will end its response with structured output. Check if the step completed successfully before moving to the next step.
+**CRITICAL**: You are an orchestrator. You ONLY call Task to spawn new agents and wait for their results.
 
 ### Error Handling
 
-If a subagent fails or returns an error instead of valid output:
+If an agent fails or returns an error instead of valid output:
 - Retry the step **once** with the same inputs.
-- If it fails again, **skip that unit of work** (log the failure) and continue with remaining units. Do NOT abort the entire pipeline for a single subagent failure.
+- If it fails again, **skip that unit of work** (log the failure) and continue with remaining units. Do NOT abort the entire pipeline for a single agent failure.
 
 ---
 
@@ -42,11 +37,11 @@ If a subagent fails or returns an error instead of valid output:
 
 Track your progress:
 
-Analysis Progress Task/Subagent Tracking:
+Analysis Progress Task Tracking:
 - [ ] Step 1: **Read** input files
 - [ ] Step 2: **Expand** agents into vectors (depends on step 1)
-- [ ] Step 3: Delegate to Subagents: **Nomination** — parallel per vector task (depends on step 2)
-- [ ] Step 4: Delegate to Subagents: **Analysis** — parallel per candidate file, writes finding files (depends on step 3)
+- [ ] Step 3: Spawn Agents: **Nomination** — parallel per vector task (depends on step 2)
+- [ ] Step 4: Spawn Agents: **Analysis** — parallel per candidate file, writes finding files (depends on step 3)
 
 ---
 
@@ -66,7 +61,7 @@ Depends On: Step 1 must successfully complete to proceed
 
 For each project's recommended scans, expand each agent name into its constituent vectors by reading the appropriate criteria YAML file:
 
-1. Determine the criteria file from the project type: `criteria/<type>.yaml` (e.g., `criteria/backend.yaml`)
+1. Determine the criteria file from the project type: `<skill_dir>/criteria/<type>.yaml` (e.g., `<skill_dir>/criteria/backend.yaml`)
 2. Read the criteria YAML file
 3. For each recommended agent (e.g., "injection"), look up the agent's top-level key in the YAML
 4. Each nested key under that agent is a **vector** (e.g., "sql-injection", "command-injection")
@@ -83,21 +78,15 @@ This produces a list of **vector tasks**. Each vector task contains:
 
 Depends On: Step 2 must successfully complete to proceed
 
-For each vector task from Step 2, dispatch a nominator subagent. Launch ALL nominators in parallel.
+For each vector task from Step 2, call the Task tool. Launch ALL nominators in parallel.
 
-Dispatch prompt (one per vector task):
-```
-Read and follow the instructions in agents/analyze/nominator.md.
-
-## Inputs
-- repo_path: <repo_path>
-- cache_dir: <cache_dir>
-- project:
-  - id: <project_id>
-  - type: <project_type>
-  - base_path: <base_path>
-- agent: <agent_name>
-- vector: <vector_name>
+Call the Task tool once per vector task with these exact parameters (replace placeholders with actual values):
+```json
+{
+  "description": "Nominate files for <vector_name>",
+  "subagent_type": "general-purpose",
+  "prompt": "You are the nominator agent. Read and follow the instructions in <skill_dir>/agents/analyze/nominator.md.\n\n## Inputs\n- repo_path: <repo_path>\n- cache_dir: <cache_dir>\n- skill_dir: <skill_dir>\n- project:\n  - id: <project_id>\n  - type: <project_type>\n  - base_path: <base_path>\n- agent: <agent_name>\n- vector: <vector_name>"
+}
 ```
 
 Each nominator returns a `## Nomination Result` with a list of candidate file paths (0 to 10 files) for its vector.
@@ -113,25 +102,17 @@ Each nominator returns a `## Nomination Result` with a list of candidate file pa
 
 Depends On: Step 3 must successfully complete to proceed
 
-For each (vector_task, candidate_file) pair from Step 3, dispatch an analyzer subagent. Launch ALL analyzers in parallel.
+For each (vector_task, candidate_file) pair from Step 3, call the Task tool. Launch ALL analyzers in parallel.
 
 Each analyzer writes a finding file directly to `<scan_dir>/findings/` if it finds a vulnerability, or writes nothing if the candidate is clean.
 
-Dispatch prompt (one per candidate file per vector):
-```
-Read and follow the instructions in agents/analyze/analyzer.md.
-
-## Inputs
-- repo_path: <repo_path>
-- cache_dir: <cache_dir>
-- scan_dir: <scan_dir>
-- project:
-  - id: <project_id>
-  - type: <project_type>
-  - base_path: <base_path>
-- agent: <agent_name>
-- vector: <vector_name>
-- candidate_file: <relative/path/to/file>
+Call the Task tool once per candidate file with these exact parameters (replace placeholders with actual values):
+```json
+{
+  "description": "Analyze <candidate_file> for <vector_name>",
+  "subagent_type": "general-purpose",
+  "prompt": "You are the analyzer agent. Read and follow the instructions in <skill_dir>/agents/analyze/analyzer.md.\n\n## Inputs\n- repo_path: <repo_path>\n- cache_dir: <cache_dir>\n- scan_dir: <scan_dir>\n- skill_dir: <skill_dir>\n- project:\n  - id: <project_id>\n  - type: <project_type>\n  - base_path: <base_path>\n- agent: <agent_name>\n- vector: <vector_name>\n- candidate_file: <relative/path/to/file>"
+}
 ```
 
 Each analyzer returns an `## Analysis Result` with status `found` (and the path to the finding file it wrote) or `clean`.

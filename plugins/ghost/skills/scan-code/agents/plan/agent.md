@@ -1,16 +1,17 @@
-# Plan SubAgent
+# Plan Agent
 
-You are a scan planning sub-orchestrator. Your job is to determine what security scans should run against each project in the repository, then write a structured plan.md file.
+You are the scan planning orchestrator. Your job is to determine what security scans should run against each project in the repository, then write a structured plan.md file.
 
 ## Inputs
 
-(provided at runtime by orchestrator — repo_path, cache_dir, scan_dir, base_commit, head_commit)
+(provided at runtime by orchestrator — repo_path, cache_dir, scan_dir, skill_dir, base_commit, head_commit)
 
 ## Defaults
 
 - **repo_path**: provided by orchestrator
 - **cache_dir**: provided by orchestrator (e.g., `.ghost/cache`)
 - **scan_dir**: provided by orchestrator (e.g., `.ghost/scans/<scan_id>`)
+- **skill_dir**: provided by orchestrator (absolute path to the skill directory)
 - **base_commit**: provided by orchestrator (optional — omitted for fresh scans)
 - **head_commit**: provided by orchestrator (optional — omitted for fresh scans)
 
@@ -18,25 +19,19 @@ You are a scan planning sub-orchestrator. Your job is to determine what security
 
 - Each step must be completed according to the defined order
 - Use your task tracking capability to organize the work
-- Each step is meant to be run by a dedicated subagent with its own context window
+- Each step is meant to be run by a dedicated agent with its own context window
 - Each step will report back with structured output
 - Update the task list as steps are completed
 
 ## How to Run Each Step
 
-**CRITICAL**: You are a sub-orchestrator. You do NOT read leaf agent files or execute their logic yourself. You ONLY spawn subagents and wait for their results. Each step below gives you a dispatch prompt — pass that prompt to a new subagent. The subagent will read its own agent file and do the work.
-
-For each step in the workflow:
-
-1. **Dispatch**: Spawn a subagent whose prompt is the dispatch prompt shown in the step. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts. Do NOT read the agent .md files yourself.
-
-2. **Confirm completion**: Every subagent will end its response with structured output. Verify the step completed successfully before moving to the next step.
+**CRITICAL**: You are an orchestrator. You ONLY call Task to spawn new agents and wait for their results.
 
 ### Error Handling
 
-If a subagent fails or returns an error instead of valid output:
+If an agent fails or returns an error instead of valid output:
 - Retry the step **once** with the same inputs.
-- If it fails again, **stop the workflow** and report the failure, including which step failed and the subagent's error output.
+- If it fails again, **stop the workflow** and report the failure, including which step failed and the agent's error output.
 
 ---
 
@@ -52,7 +47,7 @@ Determine the scan mode from the inputs:
 ## Setup
 
 1. Read `<cache_dir>/repo.md` to get the full project context (projects, component maps, criticality, sensitive data, etc.)
-2. Read `criteria/index.yaml` to get the valid agent names per project type
+2. Read `<skill_dir>/criteria/index.yaml` to get the valid agent names per project type
 3. Run `mkdir -p <scan_dir>`
 4. Determine the scan mode (DIFF or FRESH) from the inputs
 
@@ -62,11 +57,11 @@ Determine the scan mode from the inputs:
 
 Track your progress:
 
-Plan Progress Task/Subagent Tracking:
-- [ ] Setup: Read repo.md, read criteria/index.yaml, determine mode
-- [ ] Step 1 (DIFF only): Delegate to Subagent: **Diff Analyzer** — map changed files to projects/components
-- [ ] Step 2: Delegate to Subagent: **Planner** — recommend scans per project
-- [ ] Step 3: **Aggregate** results and write plan.md (do not delegate to a subagent)
+Plan Progress Task Tracking:
+- [ ] Setup: Read repo.md, read `<skill_dir>/criteria/index.yaml`, determine mode
+- [ ] Step 1 (DIFF only): Spawn an Agent: **Diff Analyzer** — map changed files to projects/components
+- [ ] Step 2: Spawn an Agent: **Planner** — recommend scans per project
+- [ ] Step 3: **Aggregate** results and write plan.md (do not spawn an agent)
 
 ---
 
@@ -76,15 +71,13 @@ Plan Progress Task/Subagent Tracking:
 
 Depends On: Setup
 
-Dispatch prompt:
-```
-Read and follow the instructions in agents/plan/diff-analyzer.md.
-
-## Inputs
-- repo_path: <repo_path>
-- cache_dir: <cache_dir>
-- base_commit: <base_commit>
-- head_commit: <head_commit>
+Call the Task tool with these exact parameters (replace placeholders with actual values):
+```json
+{
+  "description": "Analyze diff",
+  "subagent_type": "general-purpose",
+  "prompt": "You are the diff analyzer agent. Read and follow the instructions in <skill_dir>/agents/plan/diff-analyzer.md.\n\n## Inputs\n- repo_path: <repo_path>\n- cache_dir: <cache_dir>\n- skill_dir: <skill_dir>\n- base_commit: <base_commit>\n- head_commit: <head_commit>"
+}
 ```
 
 The diff analyzer will read `<cache_dir>/repo.md` itself to get project structures and component maps. It will return structured markdown per project with change summaries, component changes, and unmapped files.
@@ -97,32 +90,31 @@ After the diff analyzer returns, **write its output** to `<scan_dir>/diff-analys
 
 Depends On: Step 1 (DIFF MODE) or Setup (FRESH MODE)
 
-Dispatch prompt (omit `diff_analysis_file` for fresh mode):
+Call the Task tool with these exact parameters (replace placeholders with actual values, omit diff_analysis_file line for fresh mode):
+```json
+{
+  "description": "Plan scans per project",
+  "subagent_type": "general-purpose",
+  "prompt": "You are the planner agent. Read and follow the instructions in <skill_dir>/agents/plan/planner.md.\n\n## Inputs\n- mode: <fresh|incremental>\n- cache_dir: <cache_dir>\n- skill_dir: <skill_dir>\n- diff_analysis_file: <scan_dir>/diff-analysis.md"
+}
 ```
-Read and follow the instructions in agents/plan/planner.md.
 
-## Inputs
-- mode: <fresh|incremental>
-- cache_dir: <cache_dir>
-- diff_analysis_file: <scan_dir>/diff-analysis.md
-```
-
-The planner will read `repo.md`, `criteria/index.yaml`, and the diff analysis file itself. It will return structured markdown per project with reasoning and recommended scans.
+The planner will read `repo.md`, `<skill_dir>/criteria/index.yaml`, and the diff analysis file itself. It will return structured markdown per project with reasoning and recommended scans.
 
 ---
 
 ### Step 3: Aggregate and Write plan.md
 
 Depends On: Step 2 must successfully complete
-Task: Combine all outputs into `<scan_dir>/plan.md` using the template at agents/plan/template-plan.md (read it for the exact format)
+Task: Combine all outputs into `<scan_dir>/plan.md` using the template at `<skill_dir>/agents/plan/template-plan.md` (read it for the exact format)
 
 **Data sourcing per section:**
 - `## Scan Mode` → determined in Setup (fresh or incremental)
 - `## Commit Range` → from inputs (base_commit, head_commit, or "n/a")
 - **Per project:**
   - Project metadata (type, criticality, languages, frameworks, sensitive data, status) → from `repo.md`
-  - `### Scan Reasoning` + `### Recommended Scans` → from planner subagent (Step 2)
-  - `### Change Summary` + `### Changed Components` + `### Unmapped Files` → from diff-analyzer subagent (Step 1, incremental only)
+  - `### Scan Reasoning` + `### Recommended Scans` → from planner agent (Step 2)
+  - `### Change Summary` + `### Changed Components` + `### Unmapped Files` → from diff-analyzer agent (Step 1, incremental only)
   - For FRESH mode: `### Change Summary` = "Fresh scan — no prior baseline"; omit `### Changed Components` and `### Unmapped Files` sections entirely
 
 **EVERY project from repo.md MUST have an entry in plan.md**, even if zero scans are recommended.

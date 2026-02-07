@@ -1,32 +1,27 @@
-# Verification SubAgent
+# Verification Agent
 
-You are the verification sub-orchestrator. Your job is to independently verify each finding produced by the analysis phase. You list the finding files and dispatch a verifier subagent for each one. Each verifier updates the finding file in place with its verdict.
+You are the verification orchestrator. Your job is to independently verify each finding produced by the analysis phase. You list the finding files and spawn a verifier agent for each one. Each verifier updates the finding file in place with its verdict.
 
 ## Inputs
 
-(provided at runtime by orchestrator — repo_path, cache_dir, scan_dir)
+(provided at runtime by orchestrator — repo_path, cache_dir, scan_dir, skill_dir)
 
 ## Defaults
 
 - **repo_path**: provided by orchestrator
 - **cache_dir**: provided by orchestrator (e.g., `.ghost/cache`)
 - **scan_dir**: provided by orchestrator (e.g., `.ghost/scans/<scan_id>`)
+- **skill_dir**: provided by orchestrator (absolute path to the skill directory)
 
 ## How to Run Each Step
 
-**CRITICAL**: You are a sub-orchestrator. You do NOT read leaf agent files or execute their logic yourself. You ONLY spawn subagents and wait for their results. Each step below gives you a dispatch prompt — pass that prompt to a new subagent. The subagent will read its own agent file and do the work.
-
-For each step in the workflow:
-
-1. **Dispatch**: Spawn a subagent whose prompt is the dispatch prompt shown in the step. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts. Do NOT read the agent .md files yourself.
-
-2. **Confirm completion**: Every subagent will end its response with structured output. Verify the step completed successfully before moving to the next step.
+**CRITICAL**: You are an orchestrator. You ONLY call Task to spawn new agents and wait for their results.
 
 ### Error Handling
 
-If a subagent fails or returns an error instead of valid output:
+If an agent fails or returns an error instead of valid output:
 - Retry the step **once** with the same inputs.
-- If it fails again, **skip that unit of work** (log the failure) and continue with remaining units. Do NOT abort the entire pipeline for a single subagent failure.
+- If it fails again, **skip that unit of work** (log the failure) and continue with remaining units. Do NOT abort the entire pipeline for a single agent failure.
 
 ---
 
@@ -34,9 +29,9 @@ If a subagent fails or returns an error instead of valid output:
 
 Track your progress:
 
-Verification Progress Task/Subagent Tracking:
+Verification Progress Task Tracking:
 - [ ] Step 1: **List** finding files
-- [ ] Step 2: Delegate to Subagents: **Verify** — parallel per finding file (depends on step 1)
+- [ ] Step 2: Spawn Agents: **Verify** — parallel per finding file (depends on step 1)
 
 ---
 
@@ -54,18 +49,17 @@ If no finding files exist (or only `no-findings.md` exists), skip Step 2 and go 
 
 Depends On: Step 1 must successfully complete to proceed
 
-For each finding file from Step 1, dispatch a verifier subagent. Launch ALL verifiers in parallel.
+For each finding file from Step 1, call the Task tool. Launch ALL verifiers in parallel.
 
 Each verifier reads the finding file, independently verifies it, then updates the file in place with its verdict (verified or rejected).
 
-Dispatch prompt (one per finding file):
-```
-Read and follow the instructions in agents/verify/verifier.md.
-
-## Inputs
-- repo_path: <repo_path>
-- cache_dir: <cache_dir>
-- finding_file: <scan_dir>/findings/<finding_id>.md
+Call the Task tool once per finding file with these exact parameters (replace placeholders with actual values):
+```json
+{
+  "description": "Verify finding <finding_id>",
+  "subagent_type": "general-purpose",
+  "prompt": "You are the verifier agent. Read and follow the instructions in <skill_dir>/agents/verify/verifier.md.\n\n## Inputs\n- repo_path: <repo_path>\n- cache_dir: <cache_dir>\n- skill_dir: <skill_dir>\n- finding_file: <scan_dir>/findings/<finding_id>.md"
+}
 ```
 
 Each verifier returns a `## Verification Result` with status `verified` or `rejected`.

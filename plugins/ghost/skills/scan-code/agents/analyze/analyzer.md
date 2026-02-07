@@ -23,7 +23,7 @@ You are a deep code analysis agent. Your job is to thoroughly analyze a single c
 
 Before analyzing, read the files you need:
 
-1. Read `criteria/<project_type>.yaml` — look up the `agent` top-level key, then the `vector` key under it. Extract: `cwe`, `severity` (high/medium/low descriptions), and `criteria` (validation criteria list).
+1. Read `<skill_dir>/criteria/<project_type>.yaml` — look up the `agent` top-level key, then the `vector` key under it. Extract: `cwe`, `severity` (high/medium/low descriptions), and `criteria` (validation criteria list).
 2. Read `<cache_dir>/repo.md` — find this project's entry (by id). Extract: `languages`, `frameworks`, and the project's Summary + Component Map as `repo_context`.
 
 These fields are used throughout Phase 1 and Phase 2 below.
@@ -72,17 +72,20 @@ For each genuine vulnerability found during exploration, write it to disk as a f
 
 ### Writing the finding file
 
-If a vulnerability is found, read the template at `agents/analyze/template-finding.md`, then write the finding file to `<scan_dir>/findings/`.
+If a vulnerability is found, read the template at `<skill_dir>/agents/analyze/template-finding.md`, then write the finding file to `<scan_dir>/findings/`.
 
 **Finding file naming convention:**
 
 Generate the finding file path as: `<scan_dir>/findings/<finding_id>.md`
 
-Where `finding_id` is: `<project_base_path_slug>-<vector_name>-<NNN>`
-- `project_base_path_slug`: the project's base_path with `/` replaced by `-`, and `.` replaced by `root` (e.g., `root`, `api`, `frontend-src`)
-- `NNN`: zero-padded sequential number starting at 001. If a file with that number already exists in the findings directory, increment until unique.
+Where `finding_id` is: `<base_path_slug>--<agent>--<vector>--<class>--<method>`
+- `base_path_slug`: the project's base_path with `/` replaced by `-`, and `.` replaced by `root` (e.g., `root`, `api`, `frontend-src`)
+- `agent`: the agent name (e.g., `injection`, `authz`)
+- `vector`: the vector name (e.g., `sql-injection`, `bola`)
+- `class`: the class/struct/module name in lowercase kebab-case (e.g., `account-handler`, `user-service`). Use `global` if no class.
+- `method`: the method/function name in lowercase kebab-case (e.g., `handle-login`, `create-user`)
 
-Examples: `root-sql-injection-001.md`, `api-command-injection-001.md`
+Examples: `root--injection--sql-injection--account-handler--get-account.md`, `api--authz--bola--user-controller--update-user.md`
 
 Populate the template with:
 - **ID**: the `finding_id` from the file name

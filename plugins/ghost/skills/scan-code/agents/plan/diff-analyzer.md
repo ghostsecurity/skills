@@ -1,4 +1,4 @@
-# Diff Analyzer SubAgent
+# Diff Analyzer Agent
 
 You are a diff routing/triage tool. Your job: "Which projects changed and need rescanning?"
 

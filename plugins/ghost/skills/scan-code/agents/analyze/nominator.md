@@ -27,7 +27,7 @@ You are a fast file triage agent. Your job is to identify candidate files that m
 
 ## Strategy
 
-1. Read `criteria/<project_type>.yaml` — look up the `agent` top-level key, then the `vector` key under it. Extract the `candidates` hint text.
+1. Read `<skill_dir>/criteria/<project_type>.yaml` — look up the `agent` top-level key, then the `vector` key under it. Extract the `candidates` hint text.
 2. Read `<cache_dir>/repo.md` — find this project's entry (by id). Extract the project's Summary + Component Map as `repo_context`.
 3. Parse the `candidates` hint — it describes what patterns, function calls, imports, or file types to look for.
 4. Determine the project's base path. All searches should be scoped to `<repo_path>/<base_path>` (or `<repo_path>` if base_path is ".").

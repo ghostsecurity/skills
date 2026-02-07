@@ -1,39 +1,34 @@
-# Context SubAgent
+# Context Agent
 
-You are a repository context agent. Your job is to orchestrate project detection and summarization, then aggregate results into repo.md.
+You are the repository context orchestrator. Your job is to spawn agents for project detection and summarization, then aggregate results into repo.md.
 
 ## Inputs
 
-(provided at runtime by orchestrator — repo_path, cache_dir)
+(provided at runtime by orchestrator — repo_path, cache_dir, skill_dir)
 
 ## Defaults
 
 - **repo_path**: provided by orchestrator
 - **cache_dir**: provided by orchestrator (e.g., `.ghost/cache`)
+- **skill_dir**: provided by orchestrator (absolute path to the skill directory)
 
 ## Task Definition Rules
 
 - Each step must be completed according to the defined order
 - Use your task tracking capability to organize the work
-- Each step is meant to be run by a dedicated subagent with its own context window
+- Each step is meant to be run by a dedicated agent with its own context window
 - Each step will report back with structured output
 - Update the task list as steps are completed
 
 ## How to Run Each Step
 
-**CRITICAL**: You are a sub-orchestrator. You do NOT read leaf agent files or execute their logic yourself. You ONLY spawn subagents and wait for their results. Each step below gives you a dispatch prompt — pass that prompt to a new subagent. The subagent will read its own agent file and do the work.
-
-For each step in the workflow:
-
-1. **Dispatch**: Spawn a subagent whose prompt is the dispatch prompt shown in the step. Use your agent/subagent spawning capability — do NOT use Bash, shell commands, or file writes to build prompts. Do NOT read the agent .md files yourself.
-
-2. **Confirm completion**: Every subagent will end its response with a structured output block. Verify the step completed successfully before moving to the next step.
+**CRITICAL**: You are an orchestrator. You ONLY call Task to spawn new agents and wait for their results.
 
 ### Error Handling
 
-If a subagent fails or returns an error instead of valid output:
+If an agent fails or returns an error instead of valid output:
 - Retry the step **once** with the same inputs.
-- If it fails again, **stop the workflow** and report the failure, including which step failed and the subagent's error output.
+- If it fails again, **stop the workflow** and report the failure, including which step failed and the agent's error output.
 
 ---
 
@@ -51,10 +46,10 @@ If it does not exist, run `mkdir -p <cache_dir>` and proceed with the steps belo
 
 Track your progress:
 
-Context Progress Task/Subagent Tracking:
-- [ ] Step 1: Delegate to a Subagent: **Detect** projects in the repository
-- [ ] Step 2: Delegate to Subagents: **Summarize** each detected project (parallel) (depends on Step 1)
-- [ ] Step 3: **Aggregate** results and write repo.md (do not delegate to a subagent) (depends on Step 2)
+Context Progress Task Tracking:
+- [ ] Step 1: Spawn an Agent: **Detect** projects in the repository
+- [ ] Step 2: Spawn Agents: **Summarize** each detected project (parallel) (depends on Step 1)
+- [ ] Step 3: **Aggregate** results and write repo.md (do not spawn an agent) (depends on Step 2)
 
 ---
 
@@ -65,12 +60,13 @@ Context Progress Task/Subagent Tracking:
 Depends On: None
 Returns: List of detected projects with: id, type, base_path, languages, frameworks, dependency_files, extensions, evidence; plus a repository summary
 
-Dispatch prompt:
-```
-Read and follow the instructions in agents/context/detector.md.
-
-## Inputs
-- repo_path: <repo_path>
+Call the Task tool with these exact parameters (replace placeholders with actual values):
+```json
+{
+  "description": "Detect projects",
+  "subagent_type": "general-purpose",
+  "prompt": "You are the detector agent. Read and follow the instructions in <skill_dir>/agents/context/detector.md.\n\n## Inputs\n- repo_path: <repo_path>"
+}
 ```
 
 The detector will return a structured `## Detected Projects` section. Parse this to extract each project's details for Step 2.
@@ -81,23 +77,15 @@ The detector will return a structured `## Detected Projects` section. Parse this
 
 Depends On: Step 1 must successfully complete to proceed
 
-**IMPORTANT**: Launch ALL summarizers in parallel if your platform supports it — spawn one subagent per project.
+**IMPORTANT**: Launch ALL summarizers in parallel — call Task once per project.
 
-Dispatch prompt (one per project):
-```
-Read and follow the instructions in agents/context/summarizer.md.
-
-## Inputs
-- repo_path: <repo_path>
-- project:
-  - id: <project-id>
-  - type: <type>
-  - base_path: <base_path>
-  - languages: <languages>
-  - frameworks: <frameworks>
-  - dependency_files: <dependency_files>
-  - extensions: <extensions>
-  - evidence: <evidence>
+Call the Task tool once per project with these exact parameters (replace placeholders with actual values):
+```json
+{
+  "description": "Summarize project <project-id>",
+  "subagent_type": "general-purpose",
+  "prompt": "You are the summarizer agent. Read and follow the instructions in <skill_dir>/agents/context/summarizer.md.\n\n## Inputs\n- repo_path: <repo_path>\n- project:\n  - id: <project-id>\n  - type: <type>\n  - base_path: <base_path>\n  - languages: <languages>\n  - frameworks: <frameworks>\n  - dependency_files: <dependency_files>\n  - extensions: <extensions>\n  - evidence: <evidence>"
+}
 ```
 
 Each summarizer returns:
@@ -126,7 +114,7 @@ Combine:
   - Component Map (from summarizer)
   - Evidence (from summarizer)
 
-The output file must follow the structure in agents/context/template-repo.md (read it for the exact format).
+The output file must follow the structure in `<skill_dir>/agents/context/template-repo.md` (read it for the exact format).
 
 ---
 
