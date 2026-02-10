@@ -1,0 +1,120 @@
+# Auto-generated — do not edit. Run: bash criteria/generate-index.sh
+backend:
+  injection:
+    - command-injection
+    - sql-injection
+    - nosql-injection
+    - xpath-injection
+    - xml-injection
+    - template-injection
+    - prompt-injection
+  authz:
+    - bola
+    - bfla
+    - privesc
+    - mass-assignment
+  authn:
+    - broken-authn
+    - weak-password
+    - missing-mfa
+    - insecure-session
+    - jwt-impl
+    - cookie-security
+    - credential-stuffing
+    - missing-authn
+  crypto:
+    - weak-encryption
+    - insecure-random
+    - weak-hashing
+    - missing-encryption-rest
+    - improper-cert-validation
+  data_exposure:
+    - sensitive-logging
+    - sensitive-errors
+    - stack-trace-prod
+    - debug-endpoints
+    - info-disclosure
+    - enumeration
+  request_forgery:
+    - ssrf
+  api_security:
+    - missing-rate-limit
+    - missing-input-validation
+    - csrf
+    - excessive-data-exposure
+    - lack-resource-rate-limit
+  serialization:
+    - unsafe-deserialization
+    - xxe
+    - object-injection
+  file_handling:
+    - path-traversal
+    - arbitrary-upload
+    - unrestricted-file-type
+    - file-inclusion
+  business_logic:
+    - race-condition
+    - workflow-bypass
+    - signup-flow
+    - password-reset-vuln
+    - weak-verification-token
+frontend:
+  xss:
+    - dom-xss
+    - mxss
+  injection:
+    - css-injection
+  authn:
+    - insecure-token-storage
+    - token-url-exposure
+  authz:
+    - client-authz-bypass
+  data_exposure:
+    - sensitive-client-code
+    - console-sensitive
+    - sourcemap-exposure
+  crypto:
+    - client-crypto-impl
+    - weak-random
+  third_party_risks:
+    - missing-sri
+  open_redirect:
+    - client-open-redirect
+  postmessage:
+    - missing-origin-validation
+  prototype_pollution:
+    - prototype-manipulation
+mobile:
+  insecure_data_storage:
+    - unencrypted-local
+    - sensitive-logs
+    - keychain-misuse
+    - sqlite-encryption
+    - backup-exposure
+  insecure_communication:
+    - missing-cert-pinning
+    - cleartext-traffic
+    - weak-tls
+  authn:
+    - biometric-bypass
+    - missing-root-detection
+    - insecure-session
+  crypto:
+    - weak-encryption
+    - insecure-key-storage
+    - custom-crypto
+  code_tampering:
+    - missing-obfuscation
+    - debug-enabled
+    - insecure-ipc
+    - exported-component
+  reverse_engineering:
+    - hardcoded-secret
+    - api-in-code
+    - logic-exposure
+    - missing-anti-tamper
+  platform_specific:
+    - insecure-deeplink
+    - intent-manipulation
+    - url-scheme-hijack
+    - webview-vuln
