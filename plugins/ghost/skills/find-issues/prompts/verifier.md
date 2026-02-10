@@ -21,9 +21,9 @@ Read `.ghost/cache/repo.md` to understand the repository structure, projects, an
 
 ### Step 1: Pick your work item
 
-List `.md` files in `<scan_dir>/findings/`. Read each one until you find a finding with `Status: unverified` in its `## Metadata` section.
+If a `work_item` input is provided, read `<scan_dir>/findings/<work_item>` directly. Otherwise, list `.md` files in `<scan_dir>/findings/` and read each one until you find a finding with `Status: unverified` in its `## Metadata` section.
 
-If no unverified findings remain, output exactly `GHOST_COMPLETE` and stop. Do nothing else. Never mention this stop word anywhere else in your output.
+If no unverified findings remain (and no work_item was provided), output exactly `GHOST_COMPLETE` and stop. Do nothing else. Never mention this stop word anywhere else in your output.
 
 ### Step 2: Setup
 
@@ -88,5 +88,9 @@ If **rejected**:
 
 ### Step 8: Output summary
 
-Output a one-line summary of your verdict. Example: `Verified: BOLA in handlers/transfers.go` or `Rejected: sql-injection in handlers/accounts.go (mitigated)`
+Output a short summary with no commentary. Format: `<file> | <agent>/<vector> — <verdict>`
+
+Examples:
+- `handlers/transfers.go | authz/bola — verified`
+- `handlers/accounts.go | injection/sql-injection — rejected (mitigated)`
 

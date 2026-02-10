@@ -22,9 +22,9 @@ Read `.ghost/cache/repo.md` to understand the repository structure, projects, an
 
 ### Step 1: Pick your work item
 
-Read `<scan_dir>/nominations.md`. Find the **first** line matching `- [ ]`.
+If a `work_item` input is provided, find that exact line in `<scan_dir>/nominations.md` and use it. Otherwise, read `<scan_dir>/nominations.md` and find the **first** line matching `- [ ]`.
 
-If there are no `- [ ]` lines remaining, output exactly `GHOST_COMPLETE` and stop. Do nothing else. Never mention this stop word anywhere else in your output.
+If there are no `- [ ]` lines remaining (and no work_item was provided), output exactly `GHOST_COMPLETE` and stop. Do nothing else. Never mention this stop word anywhere else in your output.
 
 Parse the line:
 
@@ -77,4 +77,6 @@ Edit `<scan_dir>/nominations.md`: change your `- [ ]` to `- [x]` and indent any 
 
 ### Step 5: Output summary
 
-Output a one-line summary of what you did. Example: `Nominated 3 files for injection | sql-injection`
+Output a short summary with no commentary. Format: `<agent>/<vector> — <n> files`
+
+Example: `injection/sql-injection — 3 files`

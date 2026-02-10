@@ -21,9 +21,9 @@ Read `.ghost/cache/repo.md` to understand the repository structure, projects, an
 
 ### Step 1: Pick your work item
 
-Read `<scan_dir>/analyses.md`. Find the **first** line matching `- [ ]`.
+If a `work_item` input is provided, find that exact line in `<scan_dir>/analyses.md` and use it. Otherwise, read `<scan_dir>/analyses.md` and find the **first** line matching `- [ ]`.
 
-If there are no `- [ ]` lines remaining, output exactly `GHOST_COMPLETE` and stop. Do nothing else. Never mention this stop word anywhere else in your output.
+If there are no `- [ ]` lines remaining (and no work_item was provided), output exactly `GHOST_COMPLETE` and stop. Do nothing else. Never mention this stop word anywhere else in your output.
 
 Parse the line:
 
@@ -128,4 +128,8 @@ Edit `<scan_dir>/analyses.md` — replace your `- [ ]` line with `- [x]`:
 
 ### Step 6: Output summary
 
-Output a one-line summary of what you did. Example: `Analyzed handlers/auth.go for authn | broken-authn — no finding` or `Finding: BOLA in handlers/transfers.go`
+Output a short summary with no commentary. Format: `<file> | <agent>/<vector> — <result>`
+
+Examples:
+- `handlers/transfers.go | authz/bola — 1 finding`
+- `handlers/accounts.go | authz/bola — clean`
