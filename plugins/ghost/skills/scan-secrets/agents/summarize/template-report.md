@@ -27,7 +27,6 @@
 
 | Severity | Count |
 |----------|-------|
-| Critical | <count> |
 | High | <count> |
 | Medium | <count> |
 | Low | <count> |
@@ -41,18 +40,6 @@
 ---
 
 ## Findings
-
-### Critical Findings
-
-<For each critical finding:>
-
-#### <Finding Title>
-- **File**: `<file_path>`
-- **Line**: <line_number>
-- **Secret Type**: <type>
-- **Description**: <brief description>
-
----
 
 ### High Severity Findings
 
@@ -82,7 +69,7 @@
 
 Based on the scan results, we recommend the following actions:
 
-1. **Immediate Actions** (for critical/high findings)
+1. **Immediate Actions** (for high severity findings)
    - <specific action items>
 
 2. **Short-term Improvements**
