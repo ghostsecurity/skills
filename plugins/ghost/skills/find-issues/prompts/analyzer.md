@@ -72,7 +72,7 @@ Thoroughly explore the code to understand the vulnerability surface:
 A finding is genuine ONLY if **ALL** validation criteria from the vector's criteria list are satisfied.
 
 **For each finding, you must:**
-1. Verify every criterion in the criteria list. If ANY criterion is not met, do NOT report it.
+1. Analyze every criterion in the criteria list. If ANY criterion is not met, do NOT report it.
 2. Collect specific code evidence — exact lines, file paths, line numbers.
 3. Determine severity based on the severity descriptions provided.
 4. Write remediation guidance specific to the code and framework.
@@ -105,7 +105,7 @@ Populate the template with:
 - **Vector**: vector name
 - **CWE**: from criteria yaml
 - **Severity**: your assessed severity (high/medium/low)
-- **Status**: `unverified`
+- **Status**: `unverified` (always set this to unverified. the verifier will set this to verified or rejected)
 - **Location**: file, line number, function name
 - **Description**: 2-4 sentences describing the vulnerability
 - **Vulnerable Code**: 5-15 line snippet

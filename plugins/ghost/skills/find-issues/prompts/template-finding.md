@@ -8,7 +8,7 @@
 - **Vector**: <vector_name>
 - **CWE**: <cwe_id>
 - **Severity**: <high|medium|low>
-- **Status**: <unverified|verified|rejected>
+- **Status**: unverified (always set this to unverified. the verifier will set this to verified or rejected)
 
 ## Location
 - **File**: <relative/path/to/file>

@@ -16,18 +16,22 @@ You find security issues in a repository. This skill plans which vulnerability v
 
 $ARGUMENTS
 
+## Supporting files
+
+- Loop script: [scripts/loop.sh](scripts/loop.sh)
+- Scan criteria: [criteria/index.yaml](criteria/index.yaml)
+
 ---
 
 ## Step 1: Setup
 
-Generate a scan_id and locate the skill directory:
+Generate a scan_id:
 ```bash
 scan_id=$(git rev-parse --short HEAD) && mkdir -p .ghost/scans/$scan_id
-skill_dir=$(dirname $(find .claude/skills -name "loop.sh" -path "*/find-issues/*" | head -1))/..
 ```
 
 1. Read `.ghost/cache/repo.md` — if missing, **stop** and report: "Error: repo.md not found. Run the repo-context skill first."
-2. Read `$skill_dir/criteria/index.yaml` to get the valid agent→vector mappings per project type
+2. Read [criteria/index.yaml](criteria/index.yaml) to get the valid agent→vector mappings per project type
 3. Set `depth` to `quick` if not provided
 
 ---
@@ -36,10 +40,10 @@ skill_dir=$(dirname $(find .claude/skills -name "loop.sh" -path "*/find-issues/*
 
 If `.ghost/scans/$scan_id/plan.md` already exists, skip to the next step.
 
-Otherwise, run the planner:
+Otherwise, run the planner using [scripts/loop.sh](scripts/loop.sh):
 
 ```bash
-bash $skill_dir/scripts/loop.sh .ghost/scans/$scan_id planner.md "- depth: <depth>"
+bash <path-to-loop.sh> .ghost/scans/$scan_id planner.md "- depth: <depth>"
 ```
 
 Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off.
@@ -62,8 +66,10 @@ If `.ghost/scans/$scan_id/nominations.md` already exists, change every top level
 
 ### Run nomination script
 
+Using [scripts/loop.sh](scripts/loop.sh):
+
 ```bash
-bash $skill_dir/scripts/loop.sh .ghost/scans/$scan_id nominator.md "- depth: <depth>" 5
+bash <path-to-loop.sh> .ghost/scans/$scan_id nominator.md "- depth: <depth>" 5
 ```
 
 Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off.
@@ -85,8 +91,10 @@ mkdir -p .ghost/scans/$scan_id/findings
 
 ### Run analysis script
 
+Using [scripts/loop.sh](scripts/loop.sh):
+
 ```bash
-bash $skill_dir/scripts/loop.sh .ghost/scans/$scan_id analyzer.md "" 5
+bash <path-to-loop.sh> .ghost/scans/$scan_id analyzer.md "" 5
 ```
 
 Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off.
@@ -97,8 +105,10 @@ Use a 10-minute timeout. If the command times out, re-run it — the script resu
 
 List all `.md` files in `.ghost/scans/$scan_id/findings/`. If none exist, write a `no-findings.md` summary and stop.
 
+Using [scripts/loop.sh](scripts/loop.sh):
+
 ```bash
-bash $skill_dir/scripts/loop.sh .ghost/scans/$scan_id verifier.md "" 5
+bash <path-to-loop.sh> .ghost/scans/$scan_id verifier.md "" 5
 ```
 
 Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off.
