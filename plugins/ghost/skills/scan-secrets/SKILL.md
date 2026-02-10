@@ -3,7 +3,6 @@ name: ghost:scan-secrets
 description: |
   Ghost Security - Secrets and credentials scanner.
   Scans codebase for leaked API keys, tokens, passwords, and sensitive data.
-  Uses poltergeist scanner with AI-powered false positive reduction.
 allowed-tools: Read, Glob, Grep, Bash, Task, TodoRead, TodoWrite
 argument-hint: "[path-to-scan]"
 disable-model-invocation: true

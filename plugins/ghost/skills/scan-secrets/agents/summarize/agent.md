@@ -28,7 +28,7 @@ You are the summarization agent. Your job is to compile all findings into a comp
 Compute:
 - Total candidates scanned
 - Total findings (confirmed security risks)
-- Findings by severity (critical, high, medium, low)
+- Findings by severity (high, medium, low)
 - Findings by rule/secret type
 - Files with most findings
 
@@ -65,7 +65,6 @@ Return the result in exactly this format:
 ### Scan Summary
 - **Candidates Scanned**: <count>
 - **Findings**: <count>
-  - Critical: <count>
   - High: <count>
   - Medium: <count>
   - Low: <count>

@@ -66,9 +66,9 @@ Based on the rule and context:
 
 | Rule Pattern | Base Severity |
 |--------------|---------------|
-| AWS, GCP, Azure credentials | critical |
-| Database passwords, connection strings | critical |
-| Private keys, certificates | critical |
+| AWS, GCP, Azure credentials | high |
+| Database passwords, connection strings | high |
+| Private keys, certificates | high |
 | API keys (production services) | high |
 | OAuth tokens, JWTs | high |
 | Generic passwords, secrets | medium |
@@ -122,7 +122,7 @@ If a finding was written:
 - **Status**: found
 - **Finding ID**: <finding_id>
 - **Finding File**: <scan_dir>/findings/<finding_id>.md
-- **Severity**: <critical|high|medium|low>
+- **Severity**: <high|medium|low>
 
 ### Risk Assessment
 | Criterion | Result | Evidence |

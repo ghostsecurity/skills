@@ -5,7 +5,7 @@
 - **Type**: secret
 - **Rule**: <rule_name>
 - **Rule ID**: <rule_id>
-- **Severity**: <critical|high|medium|low>
+- **Severity**: <high|medium|low>
 - **Status**: unverified
 
 ## Location
