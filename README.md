@@ -37,13 +37,7 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 
 ## Contributions, Feedback, Feature Requests, and Issues
 
-Contributions are welcome! Please open a pull request or issue on this repository.
-
-- **Docs**: [ghostsecurity.ai](https://ghostsecurity.ai)
-- **Skills**: [This repository](https://github.com/ghostsecurity/skills/issues)
-- **Reaper**: [ghostsecurity/reaper](https://github.com/ghostsecurity/reaper/issues)
-- **Wraith**: [ghostsecurity/wraith](https://github.com/ghostsecurity/wraith/issues)
-- **Poltergeist**: [ghostsecurity/poltergeist](https://github.com/ghostsecurity/poltergeist/issues)
+[Open an Issue](https://github.com/ghostsecurity/skills/issues/new) per the [Contributing](.github/CONTRIBUTING.md) guidelines and [Code of Conduct](.github/CODE_OF_CONDUCT.md)
 
 ## License
 
