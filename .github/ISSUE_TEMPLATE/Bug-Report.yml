@@ -1,0 +1,50 @@
+name: "🐞 Bug Report"
+description: "Report a reproducible bug."
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: input
+    id: skill
+    attributes:
+      label: Skill
+      description: |
+        Which skill(s) did you encounter this bug on?
+      placeholder: |
+        ghost:scan-code
+    validations:
+      required: true  
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: | 
+        A clear and concise summary of what the bug is.
+      placeholder: |
+        Example bug report:
+        When I ran the ____ skill, this happened...
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: |
+        Please provide any additional details about the bug.
+      placeholder: |
+        Example details:
+        Claude Code version - 2.1.XX
+        Ghost Skill Version - 1.0.0
+        Operating System - MacOS
+        Repo (if public) - github.com/org/repo 
+    validations:
+      required: false
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Email
+      description: |
+        How can we get in touch with you if we need more info?
+      placeholder: |
+        ex. email@example.com
+    validations:
+      required: false

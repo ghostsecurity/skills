@@ -1,0 +1,23 @@
+name: "❓Question"
+description: "Ask a conceptual or usage question about this Plugin/these Skills."
+title: "[Question]: "
+labels: ["type: question"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: |
+        A clear and concise question about how these plugins/skills work or how to use it.
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Email
+      description: |
+        How can we get in touch with you if we need more info?
+      placeholder: |
+        ex. email@example.com
+    validations:
+      required: false
