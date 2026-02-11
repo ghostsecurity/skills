@@ -187,7 +187,7 @@ main() {
         fi
         echo "GitHub download failed, trying local fallback..."
     else
-        echo "Could not fetch latest version from GitHub (repo may be private)"
+        echo "Could not fetch latest version from GitHub (network error or repo not accessible)"
         echo "Trying local fallback..."
     fi
 
@@ -205,7 +205,7 @@ main() {
     echo ""
     echo "ERROR: Could not install poltergeist."
     echo "Please either:"
-    echo "  1. Ensure access to the public github repo, or"
+    echo "  1. Ensure network access to github.com/ghostsecurity/poltergeist, or"
     echo "  2. Place release artifacts in: ${LOCAL_FALLBACK_DIR}/"
     exit 1
 }
