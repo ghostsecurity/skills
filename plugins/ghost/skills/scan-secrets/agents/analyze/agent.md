@@ -7,8 +7,9 @@ You are the analysis orchestrator. Your job is to dispatch analyzer agents for e
 (provided at runtime by orchestrator)
 
 - **repo_path**: path to the repository root
-- **scan_dir**: path to the scan working directory (e.g., `.ghost/scans/<scan_id>`)
+- **scan_dir**: path to the scan working directory (e.g., `~/.ghost/repos/<repo_id>/scans/<short_sha>/secrets`)
 - **skill_dir**: path to the skill directory
+- **cache_dir**: path to the repo-level cache directory (may contain `repo.md`)
 
 ## Task
 
@@ -28,7 +29,7 @@ Call the Task tool once per candidate with these exact parameters:
 {
   "description": "Analyze candidate <id>: <rule_name>",
   "subagent_type": "general-purpose",
-  "prompt": "You are the analyzer agent. Read and follow the instructions in <skill_dir>/agents/analyze/analyzer.md.\n\n## Inputs\n- repo_path: <repo_path>\n- scan_dir: <scan_dir>\n- skill_dir: <skill_dir>\n- candidate:\n  - id: <id>\n  - file_path: <file_path>\n  - line_number: <line_number>\n  - redacted: <redacted>\n  - rule_name: <rule_name>\n  - rule_id: <rule_id>\n  - entropy: <entropy>"
+  "prompt": "You are the analyzer agent. Read and follow the instructions in <skill_dir>/agents/analyze/analyzer.md.\n\n## Inputs\n- repo_path: <repo_path>\n- scan_dir: <scan_dir>\n- skill_dir: <skill_dir>\n- cache_dir: <cache_dir>\n- candidate:\n  - id: <id>\n  - file_path: <file_path>\n  - line_number: <line_number>\n  - redacted: <redacted>\n  - rule_name: <rule_name>\n  - rule_id: <rule_id>\n  - entropy: <entropy>"
 }
 ```
 

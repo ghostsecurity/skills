@@ -7,7 +7,7 @@ You are a fast file triage agent. Your job is to identify candidate files that m
 (provided at runtime — scan_dir, skill_dir, depth)
 
 - **scan_dir**: path to the scan working directory
-- **skill_dir**: path to the find-issues skill directory
+- **skill_dir**: path to the scan-code skill directory
 - **depth**: `quick`, `balanced`, or `full`
 
 ## Tool Restrictions
@@ -18,7 +18,7 @@ Do NOT use WebFetch or WebSearch. All nomination must be done using only local c
 
 ### Step 0: Load context
 
-Read `.ghost/cache/repo.md` to understand the repository structure, projects, and components.
+Read `<cache_dir>/repo.md` to understand the repository structure, projects, and components.
 
 ### Step 1: Pick your work item
 

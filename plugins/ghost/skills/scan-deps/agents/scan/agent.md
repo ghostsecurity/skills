@@ -7,7 +7,7 @@ You are the scanner agent. Your job is to run the wraith SCA scanner on each dis
 (provided at runtime by orchestrator)
 
 - **repo_path**: path to the repository to scan
-- **scan_dir**: path to the scan working directory (e.g., `.ghost/scans/<scan_id>`)
+- **scan_dir**: path to the scan working directory (e.g., `~/.ghost/repos/<repo_id>/scans/<short_sha>/deps`)
 
 ## Task
 
@@ -39,10 +39,10 @@ On Windows, use `%USERPROFILE%\.ghost\bin\wraith.exe` instead.
 **Example:**
 ```bash
 # For lockfile id=1 at go.mod
-~/.ghost/bin/wraith scan --format json --output ".ghost/scans/20260209-143052/scan-1.json" "go.mod"
+~/.ghost/bin/wraith scan --format json --output "<scan_dir>/scan-1.json" "go.mod"
 
 # For lockfile id=2 at frontend/package-lock.json
-~/.ghost/bin/wraith scan --format json --output ".ghost/scans/20260209-143052/scan-2.json" "frontend/package-lock.json"
+~/.ghost/bin/wraith scan --format json --output "<scan_dir>/scan-2.json" "frontend/package-lock.json"
 ```
 
 **Exit Code Handling:**

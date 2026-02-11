@@ -1,5 +1,4 @@
 ---
-name: validate
 description: This skill should be used when the user asks to "validate a finding", "check if a vulnerability is real", "triage a security finding", "confirm a vulnerability", "determine if a finding is a true positive or false positive", or provides a security finding for review. It guides systematic validation of security vulnerability findings through code analysis and optional live application testing.
 ---
 
@@ -87,6 +86,10 @@ Produce a summary including:
 4. **Code Analysis**: Specific lines and logic that support the determination
 5. **Live Test Results** (if performed): Request/response pairs demonstrating the behavior
 6. **Recommendation**: Fix if true positive, close if false positive, gather more info if inconclusive
+
+### Step 6: Persist Results
+
+If the finding was provided as a file path, ask the user if they would like to append the validation details to the original finding file. If they agree, append a `## Validation` section to the file containing the determination, confidence, evidence summary, and recommendation.
 
 ## Vulnerability Class Reference
 

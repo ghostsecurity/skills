@@ -7,8 +7,9 @@ You are the summarization agent. Your job is to compile all findings into a comp
 (provided at runtime by orchestrator)
 
 - **repo_path**: path to the repository root
-- **scan_dir**: path to the scan working directory (e.g., `.ghost/scans/<scan_id>`)
+- **scan_dir**: path to the scan working directory (e.g., `~/.ghost/repos/<repo_id>/scans/<short_sha>/secrets`)
 - **skill_dir**: path to the skill directory
+- **cache_dir**: path to the repo-level cache directory (may contain `repo.md`)
 
 ## Task
 
@@ -34,8 +35,11 @@ Compute:
 
 ### Step 3: Generate Report
 
+If `<cache_dir>/repo.md` exists, read it to extract project criticality and sensitive data context. Use this to frame the report's risk assessment (e.g., "This high-criticality project handling payment data has 2 leaked credentials"). If the file does not exist, skip this — do not error.
+
 Read the template at `<skill_dir>/agents/summarize/template-report.md` and populate it with:
 - Scan metadata (timestamp, repo path, scan ID)
+- If repo context is available, include project criticality and sensitive data types in the summary
 - Summary statistics
 - Findings table sorted by severity
 - Recommendations based on findings

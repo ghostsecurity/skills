@@ -16,14 +16,14 @@ Traditional SCA tools report every CVE found in your dependency tree, leading to
 ## Usage
 
 ```
-/ghost:scan-sca [path-to-scan]
+/ghost:scan-deps [path-to-scan]
 ```
 
 Examples:
 ```
-/ghost:scan-sca .                    # Scan current directory
-/ghost:scan-sca ./backend            # Scan specific directory
-/ghost:scan-sca /path/to/repo        # Scan absolute path
+/ghost:scan-deps .                    # Scan current directory
+/ghost:scan-deps ./backend            # Scan specific directory
+/ghost:scan-deps /path/to/repo        # Scan absolute path
 ```
 
 The scanner will automatically discover all lockfiles in the repository.
@@ -102,9 +102,9 @@ The scanner automatically detects and scans these lockfile formats:
 
 ## Output
 
-Results are saved to `.ghost/scans/<timestamp>/`:
+Results are saved to `~/.ghost/repos/<repo_id>/scans/<short_sha>/deps/`:
 ```
-.ghost/scans/20260209-143052/
+~/.ghost/repos/myrepo-a1b2c3d4/scans/abc1234/deps/
 ├── lockfiles.json        # Discovered lockfiles
 ├── scan-1.json           # Raw wraith output (per lockfile)
 ├── scan-2.json
@@ -177,7 +177,7 @@ Base CVSS scores are adjusted based on actual exploitability in your codebase.
 - All analysis happens locally - no code or vulnerability data sent to external services
 - Only OSV database lookups are performed by wraith (standard practice)
 - No telemetry or usage tracking
-- Findings stay in your `.ghost/` directory
+- Findings stay in your `~/.ghost/` directory
 
 ## Offline Mode
 
@@ -207,11 +207,11 @@ To integrate into your CI/CD pipeline:
 Example GitHub Actions:
 ```yaml
 - name: Run SCA Scan
-  run: claude-code /ghost:scan-sca
+  run: claude-code /ghost:scan-deps
 
 - name: Check for HIGH findings
   run: |
-    if grep -q "Severity: HIGH" .ghost/scans/*/report.md; then
+    if grep -q "Severity: HIGH" ~/.ghost/repos/*/scans/*/deps/report.md; then
       echo "HIGH severity vulnerabilities found!"
       exit 1
     fi

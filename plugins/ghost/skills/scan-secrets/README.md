@@ -63,9 +63,9 @@ You only need the file for your platform.
 
 ## Output
 
-Findings are written to `.ghost/scans/<timestamp>/`:
+Findings are written to `~/.ghost/repos/<repo_id>/scans/<short_sha>/secrets/`:
 ```
-.ghost/scans/20240209-143052/
+~/.ghost/repos/myrepo-a1b2c3d4/scans/abc1234/secrets/
 ├── scan-output.json      # Raw poltergeist output
 ├── candidates.json       # Parsed candidates
 ├── findings/             # Confirmed security risks
