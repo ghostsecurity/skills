@@ -1,0 +1,483 @@
+# Backend vulnerability validation criteria
+# Each entry defines what must be true/present/valid for a finding to be worth surfacing
+# Format: agent > vector > {candidates, cwe, severity, criteria}
+
+injection:
+  command-injection:
+    candidates: "Files with: exec/system/spawn calls (os.exec, subprocess, child_process, Runtime.exec), shell command construction, fmt.Sprintf/string concatenation with exec, backticks/shell execution"
+    cwe: "CWE-78"
+    severity:
+      high: "Direct RCE with full shell access"
+      medium: "Limited command execution or constrained environment"
+      low: "Command injection in non-production or sandboxed context"
+    criteria:
+      - "User-controlled input reaches a system command execution point"
+      - "Command uses string concatenation instead of argument arrays or proper escaping"
+      - "Input is not validated against an allowlist of safe values"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  sql-injection:
+    candidates: "Files with: raw SQL queries (db.Query, execute, ExecuteReader, query()), query builders with string concatenation (WHERE/ORDER BY), dynamic table/column names, string formatting in SQL (%s, fmt.Sprintf, f-strings)"
+    cwe: "CWE-89"
+    severity:
+      high: "Full database access, authentication bypass, or data exfiltration"
+      medium: "Limited data exposure or read-only injection"
+      low: "Injection in non-sensitive tables or constrained context"
+    criteria:
+      - "User-controlled input reaches a SQL query without proper parameterization"
+      - "Query uses string concatenation or interpolation instead of parameterized queries or prepared statements"
+      - "Input is not validated or sanitized before being used in the query"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  nosql-injection:
+    candidates: "Files with: NoSQL database operations (MongoDB find/update/aggregate, DynamoDB query, collection operations), query object construction with user input, $where clause usage, dynamic query operators ($gt, $regex, etc.), object/map building for document queries"
+    cwe: "CWE-943"
+    severity:
+      high: "Authentication bypass or full collection access"
+      medium: "Data exposure through query manipulation"
+      low: "Limited query modification in non-sensitive collections"
+    criteria:
+      - "User-controlled input reaches a NoSQL query without proper parameterization or type validation"
+      - "Query uses object/map construction with unsanitized user input as query operators or values"
+      - "Input is not validated or typed appropriately before being used in document queries"
+      - "Dynamic query operators ($where, $regex, $gt, $lt, etc.) are constructed with user-controlled values"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  xpath-injection:
+    candidates: "Files with: XPath query construction (SelectNodes, SelectSingleNode, XPathExpression, evaluate()), XML document querying, user input in XPath predicates, dynamic XPath expression building"
+    cwe: "CWE-643"
+    severity:
+      high: "Authentication bypass or access to all XML data"
+      medium: "Exposure of sensitive XML content"
+      low: "Limited XPath manipulation in non-sensitive documents"
+    criteria:
+      - "User-controlled input is used to construct XPath expressions or predicates"
+      - "XPath query uses string concatenation instead of parameterized XPath queries or safe APIs"
+      - "Input is not validated, escaped, or sanitized before being used in XPath evaluation"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  xml-injection:
+    candidates: "Files with: XML document construction, string-based XML building, user input in XML elements/attributes, XML serialization with untrusted data, SOAP/XML-RPC message construction, manual XML concatenation"
+    cwe: "CWE-91"
+    severity:
+      high: "SOAP/API manipulation or data tampering"
+      medium: "XML structure modification affecting processing"
+      low: "Cosmetic XML changes or limited impact"
+    criteria:
+      - "User-controlled input is embedded directly into XML document structure without proper encoding"
+      - "XML construction uses string concatenation or interpolation instead of XML builder libraries or safe serializers"
+      - "Input is not validated or escaped for XML special characters (<, >, &, ', \")"
+      - "The vulnerability allows injecting new XML elements, attributes, or CDATA sections"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  template-injection:
+    candidates: "Files with: template rendering (render, execute, ExecuteTemplate), user input in templates, Jinja2/ERB/Handlebars with unsafe context, eval() in templates"
+    cwe: "CWE-1336"
+    severity:
+      high: "Server-side RCE through template engine"
+      medium: "Information disclosure or limited code execution"
+      low: "Template manipulation with limited impact"
+    criteria:
+      - "User-controlled input is used directly in template expressions"
+      - "Template engine allows code evaluation or object access"
+      - "Input is not sanitized before being passed to template rendering"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  prompt-injection:
+    candidates: "Files with: LLM/AI API calls (openai, anthropic, completions, ChatCompletion), user input concatenated into prompts, system message construction, chat message building with user content"
+    cwe: "CWE-1427"
+    severity:
+      high: "LLM performs unauthorized actions or bypasses guardrails"
+      medium: "Information extraction or prompt leakage"
+      low: "Minor prompt manipulation with limited impact"
+    criteria:
+      - "User-controlled input is incorporated into LLM prompts without sanitization"
+      - "Prompt construction uses string concatenation or interpolation with user input"
+      - "No input validation or prompt boundary controls prevent malicious instructions"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+authz:
+  bola:
+    candidates: "API endpoints with resource identifier parameters, data access by that identifier, route handlers for GET/PUT/DELETE of user-owned resources via data storage/database operations"
+    cwe: "CWE-639"
+    severity:
+      high: "Access to other users' sensitive data (PII, financial, health)"
+      medium: "Access to other users' non-sensitive resources"
+      low: "Access to semi-public or low-sensitivity resources"
+    criteria:
+      - "Code accesses a specific resource instance (database record, file, object) using an identifier"
+      - "The identifier determining which resource instance is accessed comes from user-controlled input"
+      - "Code does not verify the authenticated user has authorization to access that specific resource instance"
+      - "Requires authentication (not a public access path)"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  bfla:
+    candidates: "Admin/privileged endpoints (/admin, /api/admin, /manage, DELETE/PUT operations), role-based route handlers, permission checks in middleware or decorators (@RequiresRole, authorize, checkPermission), function-level access control logic, authenticated endpoints that modify data or access protected resources, route handlers that assume authenticated = authorized, business operations without permission verification"
+    cwe: "CWE-285"
+    severity:
+      high: "Access to admin functions or system-wide operations"
+      medium: "Access to privileged features above user's role"
+      low: "Minor privilege escalation with limited impact"
+    criteria:
+      - "Code performs operations that should be restricted to users with specific roles, permissions, or elevated privileges"
+      - "Code does not verify the authenticated user has the required role, permission, or privilege level to perform the operation"
+      - "Requires authentication (not a public access path)"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  privesc:
+    candidates: "User profile update endpoints with role/permission fields, admin creation or role assignment operations, endpoints that modify user privileges, permission/role modification APIs, group or team membership management"
+    cwe: "CWE-269"
+    severity:
+      high: "User can grant themselves admin or superuser privileges"
+      medium: "User can elevate to higher role with additional access"
+      low: "Limited privilege changes with constrained impact"
+    criteria:
+      - "Endpoint allows users to modify their own or others' roles, permissions, or privilege levels"
+      - "User can elevate their privileges through direct field modification or API manipulation"
+      - "Authorization check does not prevent users from granting themselves higher privileges"
+      - "Role or permission modification endpoints lack proper access controls preventing self-elevation"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  mass-assignment:
+    candidates: "Model binding from request body (bind, BindJSON, ModelState, FromBody), object update operations accepting full objects, endpoints using reflection or auto-mapping (AutoMapper, struct binding), user/profile update endpoints with sensitive fields (isAdmin, role, permissions)"
+    cwe: "CWE-915"
+    severity:
+      high: "Can set admin flags, roles, or sensitive permissions"
+      medium: "Can modify protected fields like account status"
+      low: "Can set unintended but non-critical fields"
+    criteria:
+      - "User input is directly bound to model/object properties without explicit field filtering or allowlisting"
+      - "Privileged or internal fields (role, isAdmin, permissions, status, etc.) can be modified by including them in request"
+      - "No allowlist, denylist, or field-level protection prevents modification of sensitive attributes"
+      - "Model binding or auto-mapping accepts all fields from request without validation of which fields should be user-modifiable"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+authn:
+  broken-authn:
+    candidates: "Authentication verification functions (verifyCredentials, checkPassword, validateToken), login handlers, credential comparison logic, authentication bypass conditions, early returns in auth checks"
+    criteria:
+      - "Authentication mechanism exists and is intended to verify user credentials"
+      - "Logic flaw allows bypassing authentication through manipulation (empty password check, logic errors, timing issues)"
+      - "The vulnerability is in the authentication verification logic itself, not the absence of authentication"
+      - "Attacker can gain authenticated access without valid credentials due to implementation flaws"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  weak-password:
+    candidates: "Password validation functions (validatePassword, checkPasswordStrength), user registration/signup handlers, password setting/update endpoints, password policy configuration, password requirement checks"
+    criteria:
+      - "System has password creation or update functionality for user accounts"
+      - "Password policy does not enforce sufficient complexity (minimum length, character variety, common password checks)"
+      - "Weak passwords are accepted and stored, making accounts vulnerable to guessing or brute force"
+      - "The vulnerability is in password requirements, not in how passwords are verified or stored cryptographically"
+
+  missing-mfa:
+    candidates: "Login handlers for admin/privileged accounts, authentication flows for sensitive operations, account creation for elevated roles, critical transaction endpoints, configuration files defining authentication requirements"
+    criteria:
+      - "Accounts or operations are high-value, privileged, or handle sensitive data/transactions"
+      - "Authentication relies solely on a single factor (typically password or API key)"
+      - "No second authentication factor is required, available, or enforced (TOTP, SMS, hardware token, biometric)"
+      - "The vulnerability is the absence of multi-factor authentication, not issues with existing MFA implementation"
+
+  insecure-session:
+    candidates: "Session token generation (generateSessionId, createSession, uuid, random), session creation/destruction logic, logout handlers, session timeout configuration, session storage operations"
+    criteria:
+      - "System generates session tokens or identifiers for authenticated users"
+      - "Session tokens have security weaknesses (predictable generation, insufficient entropy, too short, no expiration)"
+      - "Session management lacks proper lifecycle controls (no logout invalidation, excessive timeout, token reuse)"
+      - "The vulnerability is in session token generation or management, not in how tokens are transmitted or stored"
+
+  jwt-impl:
+    candidates: "JWT signature verification (verify, verifyToken, jwt.verify), JWT creation/signing (sign, createToken), JWT parsing without validation, algorithm specification in JWT operations, JWT middleware or authentication guards"
+    criteria:
+      - "System uses JSON Web Tokens (JWT) for authentication or authorization"
+      - "JWT implementation has critical flaws (accepts 'none' algorithm, skips signature verification, weak signing algorithm)"
+      - "JWT usage allows token manipulation, forging, or bypassing of authentication/authorization"
+      - "The vulnerability is specific to JWT implementation, not general authentication or session issues"
+
+  cookie-security:
+    candidates: "Session cookie creation (setCookie, Set-Cookie, cookie options), cookie configuration (httpOnly, secure, sameSite), authentication cookie handling, cookie middleware setup"
+    criteria:
+      - "System uses cookies to store session identifiers or authentication tokens"
+      - "Authentication cookies lack security attributes (missing HttpOnly, Secure, or SameSite flags)"
+      - "Missing attributes enable specific attacks (XSS token theft via HttpOnly, MITM via Secure, CSRF via SameSite)"
+      - "The vulnerability is in cookie configuration, not in the token/session itself or authentication logic"
+
+  credential-stuffing:
+    candidates: "Login endpoints (.e.g. /login, /signin, /auth), authentication handlers, rate limiting middleware, login attempt tracking, CAPTCHA integration, account lockout logic, IP-based throttling"
+    criteria:
+      - "Endpoint is specifically for login or authentication (validates credentials for access)"
+      - "Endpoint lacks comprehensive anti-automation protections (missing multiple of: account lockout after failed attempts, CAPTCHA/bot detection, adaptive rate limiting based on failures)"
+      - "Attackers can test large volumes of stolen credential pairs from data breaches without significant friction"
+      - "The vulnerability is the lack of credential-stuffing-specific defenses on login endpoints, not general rate limiting or password strength"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  missing-authn:
+    candidates: "API route definitions (router.get, app.post, @RequestMapping), middleware chains, route handlers for sensitive endpoints (/admin, /api, /user), protected resource access without auth checks"
+    criteria:
+      - "Endpoint modifies system state or accesses protected data without any authentication check"
+      - "No authentication middleware, decorator, or guard is present in the request handling path"
+      - "Endpoint is not part of an authentication establishment flow (login, OAuth callback, registration, password reset)"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+crypto:
+  weak-encryption:
+    candidates: "Encryption operations (encrypt, cipher, AES, DES, RC4, crypto.createCipher), cipher initialization (createCipheriv, Cipher.getInstance), encryption mode specification (ECB, CBC, GCM), algorithm selection in encryption libraries"
+    criteria:
+      - "Code performs encryption of data using cryptographic libraries or functions"
+      - "Encryption uses weak, outdated, or broken algorithms (DES, 3DES, RC4, Blowfish) or insecure modes (ECB)"
+      - "The algorithm or mode chosen provides insufficient security for the data being protected"
+      - "Encrypted data is transmitted over network, stored persistently, or cached, and breaking the encryption would expose sensitive information to attackers"
+      - "The vulnerability is in the encryption algorithm or mode selection, not key management or random number generation"
+
+  insecure-random:
+    candidates: "Random number generation for security (Math.random, rand.Intn, Random, SecureRandom, uuid), token/key generation, nonce creation, session ID generation, CSRF token generation, password reset token creation"
+    criteria:
+      - "Code generates random values for security-sensitive purposes (tokens, keys, IVs, nonces, session IDs)"
+      - "Random number generation uses non-cryptographic sources (Math.random, rand.Intn, time-based seeds, predictable generators)"
+      - "Lack of cryptographic randomness makes the values predictable or guessable"
+      - "Predictable random values enable attacks such as session hijacking, token forgery, authentication bypass, or cryptographic key compromise"
+      - "The vulnerability is in random number generation quality, not in how the random values are used"
+
+  weak-hashing:
+    candidates: "Hash operations (hash, digest, md5, sha1, sha256, bcrypt, scrypt, argon2), password hashing, integrity verification, cryptographic signing, hash algorithm selection or configuration"
+    criteria:
+      - "Code hashes data for security purposes (password storage, integrity checks, digital signatures)"
+      - "Hashing uses broken or weak algorithms (MD5, SHA1) or lacks proper construction (no salt, static salt, insufficient iterations)"
+      - "For passwords specifically, does not use purpose-built password hashing algorithms (bcrypt, scrypt, Argon2, PBKDF2)"
+      - "The vulnerability is in hash algorithm selection or configuration, not in where hashes are stored or how they're compared"
+
+  missing-encryption-rest:
+    candidates: "Database write operations storing sensitive data (INSERT, UPDATE, save, create), file writes with PII/secrets (writeFile, os.Create, File.Write), sensitive field definitions in models/schemas, storage configuration for sensitive tables/collections"
+    criteria:
+      - "Code stores sensitive data persistently (database, filesystem, object storage, cache)"
+      - "Sensitive data includes PII, credentials, secrets, financial data, or confidential information"
+      - "Data is stored in plaintext without encryption protection at the storage layer"
+      - "The vulnerability is the absence of encryption for stored data, not weak encryption algorithms or key management issues"
+
+  improper-cert-validation:
+    candidates: "TLS/HTTPS client configuration (http.Client, requests, axios, fetch with custom TLS), certificate verification settings (InsecureSkipVerify, verify=False, rejectUnauthorized), custom certificate validation logic, SSL context configuration"
+    criteria:
+      - "Code makes HTTPS/TLS connections to external services as a client"
+      - "Certificate validation is explicitly disabled, bypassed, or accepts any certificate (InsecureSkipVerify, verify=False, NODE_TLS_REJECT_UNAUTHORIZED=0)"
+      - "Missing validation enables MITM attacks by accepting invalid, self-signed, or malicious certificates"
+      - "The vulnerability is in certificate validation logic, not in the choice of TLS version or cipher suites"
+
+data_exposure:
+  sensitive-logging:
+    candidates: "Logging statements (log, logger, console.log, slog, print), log message construction with variables, logging of request/response objects, structured logging fields, audit logging"
+    criteria:
+      - "Code writes log messages to application logs (files, stdout, logging service)"
+      - "Log messages include sensitive data (passwords, tokens, API keys, secrets, PII, credit cards, etc.)"
+      - "Sensitive data is logged in plaintext without redaction, masking, or filtering"
+      - "The vulnerability is in what gets logged, not in log storage security or log access controls"
+
+  sensitive-errors:
+    candidates: "Error message construction (Error, fmt.Errorf, throw new Error), error responses to clients, exception handling that includes sensitive context, error formatting with variables"
+    criteria:
+      - "Code generates error messages that are returned to clients or users"
+      - "Error messages contain sensitive system information (file paths, database details, internal IPs, SQL queries, implementation details)"
+      - "Error details aid attackers in understanding system internals or planning attacks"
+      - "The vulnerability is in error message content, not in the presence of stack traces or error handling logic itself"
+
+  stack-trace-prod:
+    candidates: "Exception/error handlers in route handlers or middleware, error response formatting, debug mode configuration, exception-to-response conversion, global error handlers"
+    criteria:
+      - "Application encounters exceptions or errors during request processing"
+      - "Full stack traces with code paths, file names, and line numbers are returned to clients in production"
+      - "Stack traces reveal code structure, internal implementation, and framework details"
+      - "The vulnerability is specifically about stack trace exposure, not generic error messages or debug information"
+
+  debug-endpoints:
+    candidates: "Route definitions for debug/diagnostic endpoints (/debug, /status, /health, /metrics, /env), development-only route registrations, conditional endpoint enabling, administrative diagnostic handlers"
+    criteria:
+      - "Application has debug, diagnostic, or development endpoints that expose system information"
+      - "Endpoints are accessible in production without proper authentication or are not disabled for production"
+      - "Endpoints are accessible remotely over network protocols (HTTP/S, gRPC, WebSocket) without requiring server access"
+      - "Endpoints reveal configuration, environment variables, internal state, metrics, or diagnostic data"
+      - "The vulnerability is the presence of debug endpoints in production, not information disclosure through normal endpoints"
+
+  info-disclosure:
+    candidates: "HTTP response header configuration (Server, X-Powered-By, X-AspNet-Version), error page templates, framework default responses, response header middleware, banner information"
+    criteria:
+      - "Application exposes software versions, framework details, or technology stack information"
+      - "Information is disclosed through HTTP headers, default pages, error pages, or response metadata"
+      - "Disclosed information helps attackers identify specific vulnerabilities or attack vectors for the technology stack"
+      - "The vulnerability is about technology/version fingerprinting, not disclosure of application data or debug information"
+
+  enumeration:
+    candidates: "Endpoints that check resource/user existence (user lookup, email check, account verification), error messages for found vs not-found vs unauthorized, timing differences in authentication responses, registration/login feedback messages"
+    criteria:
+      - "Endpoint allows checking whether specific resources, users, accounts, or identifiers exist"
+      - "System provides different responses, error messages, timing differences, or status codes that reveal existence vs non-existence"
+      - "Attackers can enumerate valid usernames, emails, account IDs, resource identifiers through repeated probing"
+      - "The vulnerability is about existence disclosure through any observable difference, not about accessing the actual data or resources"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+request_forgery:
+  ssrf:
+    candidates: "HTTP client calls (http.Get, requests.get, fetch, axios), URL construction with user input, webhook/callback URL handling, image/file fetching from URLs, proxy/redirect endpoints"
+    criteria:
+      - "User-controlled input is used to construct URLs or network requests"
+      - "Application fetches remote resources without validating destination"
+      - "No allowlist restricts accessible hosts, ports, or protocols"
+      - "SSRF enables undesired access to internal network resources, cloud metadata endpoints (AWS/GCP/Azure credentials), localhost services, bypassing firewall/network restrictions, or acts as an open proxy"
+      - "Attacker can reach resources through SSRF that are not directly accessible from their position (external/public internet, or authenticated API access), without requiring pre-existing access to internal networks, server filesystem, or administrative interfaces"
+
+api_security:
+  missing-rate-limit:
+    candidates: "API endpoint handlers (excluding login/authentication), middleware configuration, rate limiting decorators or guards, request throttling logic, per-user or per-IP limiting"
+    criteria:
+      - "API endpoint can be called repeatedly by users or clients"
+      - "No rate limiting, throttling, or request frequency restrictions are implemented"
+      - "Endpoint can be abused through automated high-volume requests without hindrance"
+      - "Abuse enables denial of service through high request volumes, data scraping, inventory manipulation, or competitive advantage through mass queries"
+      - "Endpoint is NOT a login or authentication endpoint (those are evaluated by other vectors)"
+      - "The vulnerability is the complete absence of rate limiting, not insufficient limits or bypassable limits"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  missing-input-validation:
+    candidates: "Request parameter handling (query params, path params, request body), input parsing, data binding, validation decorators or middleware, schema validation, type checking in handlers"
+    criteria:
+      - "Endpoint accepts user input (query params, path params, request body, headers)"
+      - "Input is not validated for type, format, length, range, or expected values before processing"
+      - "Application trusts and processes client-provided data without verification or sanitization"
+      - "Unvalidated input leads to exploitable conditions: injection vulnerabilities, business logic bypasses, buffer overflows, type confusion, or other downstream security issues"
+      - "The vulnerability is the absence of input validation logic, not weak validation or validation bypasses"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  csrf:
+    candidates: "State-changing endpoints (POST/PUT/DELETE/PATCH), form submissions, CSRF token generation/validation, middleware for CSRF protection, SameSite cookie configuration, origin/referer checking"
+    criteria:
+      - "Endpoint performs state-changing operations (creates, updates, deletes data or modifies system state)"
+      - "Endpoint lacks CSRF token validation or other anti-CSRF protections (origin verification, referer checking, double-submit cookies)"
+      - "Authenticated requests can be forged from malicious sites causing unintended actions"
+      - "The vulnerability is specific to cross-site request forgery, not general authentication or session issues"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  excessive-data-exposure:
+    candidates: "API response serialization, database query result mapping to responses, response DTOs or view models, field projection/selection in queries, API response transformers, sensitive field filtering"
+    criteria:
+      - "API endpoint returns database entities or complete data objects in responses"
+      - "Response includes unnecessary fields: internal metadata (IDs, timestamps, system fields), sensitive data (PII, passwords, tokens), or attributes not needed by the API consumer"
+      - "No explicit field filtering, projection, or DTO mapping limits response data to necessary fields only"
+      - "The vulnerability is about over-exposure of data fields in API design (returning more than needed), not about authorization failures (wrong user accessing data)"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  lack-resource-rate-limit:
+    candidates: "Expensive operations (large queries, file uploads, bulk operations, report generation, search endpoints), resource consumption tracking, per-operation quotas, cost-based throttling"
+    criteria:
+      - "Endpoint performs resource-intensive operations (large queries, file processing, bulk operations, complex computations)"
+      - "No per-user quotas, resource consumption limits, or operation-specific throttling exist"
+      - "Users can repeatedly invoke expensive operations causing resource exhaustion or cost escalation"
+      - "The vulnerability is about resource-intensive operations specifically, not general endpoint rate limiting"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+serialization:
+  unsafe-deserialization:
+    candidates: "Deserialization operations (unserialize, pickle.loads, Marshal.load, deserialize, readObject), object reconstruction from serialized data, serialization libraries accepting untrusted input (Java serialization, Python pickle, PHP unserialize)"
+    criteria:
+      - "Application deserializes data from untrusted sources (user input, external APIs, cookies)"
+      - "Deserialization uses formats that allow arbitrary object instantiation (Java serialization, Python pickle, PHP serialize, Ruby Marshal)"
+      - "No type validation, class allowlisting, or secure deserialization configuration restricts what can be instantiated"
+      - "The vulnerability is in unsafe deserialization of attacker-controlled data, not in object instantiation from trusted internal sources"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  xxe:
+    candidates: "XML parser creation and configuration (DocumentBuilder, XMLReader, SAXParser, etree.parse, libxml), XML parsing operations, DTD processing settings, external entity resolution configuration, XML parser feature flags"
+    criteria:
+      - "Application parses XML documents from untrusted sources (user uploads, API requests, external feeds)"
+      - "XML parser has external entity processing enabled (does not disable DTD processing, external entities, or ENTITY declarations)"
+      - "Parser configuration allows loading external resources or file system access via XML entities"
+      - "The vulnerability is specific to XML external entity attacks, not general XML injection or parsing errors"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  object-injection:
+    candidates: "Dynamic object instantiation (new Class(), Activator.CreateInstance, eval, __construct), class name variables from user input, magic method usage (__wakeup, __destruct, __toString), deserialization with dynamic class resolution"
+    criteria:
+      - "Application uses explicit object instantiation (new, Activator.CreateInstance, eval) where class name is from user input"
+      - "User-controlled string or variable directly determines which class is instantiated (not through deserialization)"
+      - "Object instantiation allows code execution through dangerous constructors, static initializers, or class loading"
+      - "The vulnerability is in direct dynamic class instantiation with user-controlled class names, NOT through deserialization APIs (unserialize, pickle, etc.)"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+file_handling:
+  path-traversal:
+    candidates: "File path construction with user input (path.join, os.path.join, filepath.Join, Path.Combine), file read/write operations (open, readFile, writeFile, File.Open), file serving endpoints, download handlers, path sanitization logic"
+    criteria:
+      - "Application constructs file paths using user-controlled input (filenames, paths, directory names)"
+      - "File operations (read, write, delete, serve) do not prevent traversal sequences (../, .\\, absolute paths)"
+      - "No path sanitization or validation restricts file access to intended base directories"
+      - "The vulnerability is in path construction allowing directory traversal, not in file upload or inclusion"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  arbitrary-upload:
+    candidates: "File upload handlers (multipart/form-data handling, file.save, move_uploaded_file), upload endpoints, file storage operations, uploaded file validation, file type/extension checking"
+    criteria:
+      - "Application accepts file uploads from users without any file type restrictions or validation"
+      - "Upload functionality allows any file content, extension, and MIME type without checks"
+      - "Uploaded files are stored and potentially served/executed by the application or web server"
+      - "The vulnerability is the complete absence of file type restrictions, not insufficient validation (that's unrestricted-file-type)"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  unrestricted-file-type:
+    candidates: "File upload type validation, MIME type checking, file extension validation (whitelist/blacklist), content-type verification, magic byte checking, allowed file type configuration"
+    criteria:
+      - "Application has file upload functionality with some validation attempts but accepts dangerous file types"
+      - "Validation exists but is insufficient (extension-only checks, blacklists, bypassable MIME type checks)"
+      - "Dangerous file types (executables, scripts, server-side code) can still be uploaded despite validation"
+      - "The vulnerability is in weak/bypassable file type validation, distinct from having no validation at all"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  file-inclusion:
+    candidates: "Dynamic file inclusion (include, require, import, load, source), file path variables from user input, template/view loading with user-controlled paths, plugin/module loading, configuration file inclusion"
+    criteria:
+      - "Application dynamically includes, loads, or requires files where the file path is influenced by user input"
+      - "File path construction for inclusion uses unsanitized user-controlled values"
+      - "No allowlist or strict validation restricts which files can be dynamically included"
+      - "The vulnerability is in dynamic file inclusion with user-controlled paths, not in reading user-specified files for download"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+business_logic:
+  race-condition:
+    candidates: "Database transactions without locking (BEGIN/COMMIT without SELECT FOR UPDATE), balance/quantity checks then updates, concurrent state modifications, inventory management, double-spending scenarios"
+    criteria:
+      - "Critical operation lacks proper synchronization or locking mechanisms"
+      - "Time-of-check to time-of-use gap allows state changes between validation and action"
+      - "Concurrent requests can manipulate shared state leading to inconsistent results"
+      - "Race condition exploitation enables attacker to manipulate application state to achieve privilege escalation, bypass limits/quotas, or gain unauthorized access to resources"
+
+  workflow-bypass:
+    candidates: "Multi-step process endpoints (checkout, application, approval, onboarding flows), step sequence validation, workflow state checks, step completion verification, process stage transitions"
+    criteria:
+      - "Application has a multi-step sequential business process (checkout, loan application, approval workflow, onboarding)"
+      - "Steps have required ordering where later steps should not be accessible without completing earlier steps"
+      - "Users can skip required steps, access later steps directly, or manipulate workflow state to bypass sequence enforcement"
+      - "The vulnerability is in sequential step enforcement, not authorization (permissions) or concurrency (race conditions)"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  signup-flow:
+    candidates: "User registration endpoints (/register, /signup, createUser), email verification logic, account activation, confirmation token handling, duplicate email checks"
+    criteria:
+      - "Account registration lacks verification or ownership confirmation"
+      - "Signup process allows creating accounts with privileged roles or permissions"
+      - "Registration workflow can be manipulated to bypass restrictions or validations"
+      - "The vulnerability is in the workflow or process logic, not in the cryptographic quality of verification tokens"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  password-reset-vuln:
+    candidates: "Password reset endpoints (/reset, /forgot), reset token generation/validation, password update without re-authentication, token expiration logic, email verification for resets"
+    criteria:
+      - "Password reset flow has security weaknesses in its workflow or process implementation"
+      - "User identity verification is insufficient before allowing password reset (weak security questions, no verification step)"
+      - "Password reset process can be manipulated to bypass restrictions or validations (e.g., race conditions, direct URL access)"
+      - "The vulnerability is in the password reset workflow logic, not in the token's cryptographic strength (that's weak-verification-token)"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
+
+  weak-verification-token:
+    candidates: "Token generation (random, uuid, hash), email verification tokens, password reset tokens, 2FA/OTP generation, predictable token patterns, insufficient entropy"
+    criteria:
+      - "Application generates tokens for security-sensitive verification purposes (email/SMS verification, password reset, account activation)"
+      - "Verification tokens are short, predictable, or have low entropy (e.g., 4-6 digits, sequential values, timestamp-based)"
+      - "Token lacks proper cryptographic randomness making brute force attacks feasible"
+      - "No rate limiting or account lockout prevents token guessing attempts"
+      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
