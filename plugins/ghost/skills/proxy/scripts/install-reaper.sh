@@ -1,14 +1,14 @@
 #!/bin/bash
-# install-poltergeist.sh
-# Cross-platform installer for the poltergeist secret scanner
+# install-reaper.sh
+# Cross-platform installer for the reaper proxy
 # Supports: Linux (amd64, arm64), macOS (amd64, arm64), Windows (amd64 via Git Bash/WSL)
 
 set -e
 
 # Configuration
-REPO="ghostsecurity/poltergeist"
+REPO="ghostsecurity/reaper"
 BIN_DIR="${HOME}/.ghost/bin"
-BINARY_NAME="poltergeist"
+BINARY_NAME="reaper"
 LOCAL_FALLBACK_DIR="${HOME}/.ghost/releases/latest"
 
 # Detect platform
@@ -40,10 +40,10 @@ get_latest_version() {
         sed -E 's/.*"([^"]+)".*/\1/'
 }
 
-# Check if poltergeist is already installed and get version
+# Check if reaper is already installed and get version
 get_installed_version() {
     if [ -x "${BIN_DIR}/${BINARY_NAME}" ]; then
-        "${BIN_DIR}/${BINARY_NAME}" --version 2>/dev/null | head -1 || echo ""
+        "${BIN_DIR}/${BINARY_NAME}" version 2>/dev/null | head -1 || echo ""
     else
         echo ""
     fi
@@ -60,10 +60,10 @@ install_from_local() {
     # Windows uses zip
     if [ "$os" = "windows" ]; then
         ext="zip"
-        BINARY_NAME="poltergeist.exe"
+        BINARY_NAME="reaper.exe"
     fi
 
-    local_file="${LOCAL_FALLBACK_DIR}/poltergeist_${os}_${arch}.${ext}"
+    local_file="${LOCAL_FALLBACK_DIR}/reaper_${os}_${arch}.${ext}"
 
     if [ ! -f "$local_file" ]; then
         echo "Local fallback not found: ${local_file}" >&2
@@ -86,7 +86,7 @@ install_from_local() {
         tar xzf "${local_file}" -C "${tmp_dir}"
     fi
 
-    # Install binary
+    # Install reaper binary
     mv "${tmp_dir}/${BINARY_NAME}" "${BIN_DIR}/${BINARY_NAME}"
     chmod +x "${BIN_DIR}/${BINARY_NAME}"
 
@@ -111,13 +111,13 @@ install_from_github() {
     # Windows uses zip
     if [ "$os" = "windows" ]; then
         ext="zip"
-        BINARY_NAME="poltergeist.exe"
+        BINARY_NAME="reaper.exe"
     fi
 
     # Construct download URL
-    download_url="https://github.com/${REPO}/releases/download/${version}/poltergeist_${os}_${arch}.${ext}"
+    download_url="https://github.com/${REPO}/releases/download/${version}/reaper_${os}_${arch}.${ext}"
 
-    echo "Downloading poltergeist ${version} for ${platform}..."
+    echo "Downloading reaper ${version} for ${platform}..."
     echo "URL: ${download_url}"
 
     # Create bin directory
@@ -129,14 +129,14 @@ install_from_github() {
     trap "rm -rf ${tmp_dir}" EXIT
 
     if [ "$ext" = "zip" ]; then
-        curl -sfL "${download_url}" -o "${tmp_dir}/poltergeist.zip" || return 1
-        unzip -q "${tmp_dir}/poltergeist.zip" -d "${tmp_dir}"
+        curl -sfL "${download_url}" -o "${tmp_dir}/reaper.zip" || return 1
+        unzip -q "${tmp_dir}/reaper.zip" -d "${tmp_dir}"
     else
-        curl -sfL "${download_url}" -o "${tmp_dir}/poltergeist.tar.gz" || return 1
-        tar xzf "${tmp_dir}/poltergeist.tar.gz" -C "${tmp_dir}"
+        curl -sfL "${download_url}" -o "${tmp_dir}/reaper.tar.gz" || return 1
+        tar xzf "${tmp_dir}/reaper.tar.gz" -C "${tmp_dir}"
     fi
 
-    # Install binary
+    # Install reaper binary
     mv "${tmp_dir}/${BINARY_NAME}" "${BIN_DIR}/${BINARY_NAME}"
     chmod +x "${BIN_DIR}/${BINARY_NAME}"
 
@@ -151,8 +151,8 @@ install_from_github() {
 
 # Main
 main() {
-    echo "Poltergeist Installer"
-    echo "====================="
+    echo "Reaper Proxy Installer"
+    echo "============================"
 
     # Detect platform
     local platform
@@ -179,7 +179,7 @@ main() {
         if install_from_github "$platform" "$latest_version"; then
             echo ""
             echo "Verification:"
-            "${BIN_DIR}/${BINARY_NAME}" --version
+            "${BIN_DIR}/${BINARY_NAME}" version
             echo ""
             echo "Installation complete!"
             echo "Binary path: ${BIN_DIR}/${BINARY_NAME}"
@@ -195,7 +195,7 @@ main() {
     if install_from_local "$platform"; then
         echo ""
         echo "Verification:"
-        "${BIN_DIR}/${BINARY_NAME}" --version
+        "${BIN_DIR}/${BINARY_NAME}" version
         echo ""
         echo "Installation complete (from local fallback)!"
         echo "Binary path: ${BIN_DIR}/${BINARY_NAME}"
@@ -203,9 +203,9 @@ main() {
     fi
 
     echo ""
-    echo "ERROR: Could not install poltergeist."
+    echo "ERROR: Could not install reaper."
     echo "Please either:"
-    echo "  1. Ensure network access to github.com/ghostsecurity/poltergeist, or"
+    echo "  1. Ensure network access to github.com/ghostsecurity/reaper, or"
     echo "  2. Place release artifacts in: ${LOCAL_FALLBACK_DIR}/"
     exit 1
 }
