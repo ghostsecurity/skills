@@ -5,12 +5,14 @@ scan_dir="$1"
 prompt="$2"
 extra_inputs="${3:-}"
 max_parallel="${4:-1}"
+cache_dir="${5:-}"
 skill_dir="$(cd "$(dirname "$0")/.." && pwd)"
 
 run_one() {
   local work_item="$1"
   local inputs="- scan_dir: $scan_dir
-- skill_dir: $skill_dir"
+- skill_dir: $skill_dir
+- cache_dir: $cache_dir"
   if [ -n "$work_item" ]; then
     inputs="$inputs
 - work_item: $work_item"

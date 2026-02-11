@@ -11,7 +11,7 @@ Do NOT use WebFetch or WebSearch. All planning must be done using only local cod
 (provided at runtime — scan_dir, skill_dir, depth)
 
 Read these files to gather context:
-1. `.ghost/cache/repo.md` — project metadata (base_paths, types, criticality, languages, frameworks, sensitive data, component maps)
+1. `<cache_dir>/repo.md` — project metadata (base_paths, types, criticality, languages, frameworks, sensitive data, component maps)
 2. `<skill_dir>/criteria/index.yaml` — valid agent→vector mappings per project type
 
 ## Instructions

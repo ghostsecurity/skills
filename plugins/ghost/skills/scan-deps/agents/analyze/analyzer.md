@@ -9,6 +9,7 @@ You are an exploitability analysis agent. Your job is to determine whether a det
 - **repo_path**: path to the repository root
 - **scan_dir**: path to the scan working directory
 - **skill_dir**: path to the skill directory
+- **cache_dir**: path to the repo-level cache directory (may contain `repo.md`)
 - **candidate**: the vulnerability candidate to analyze
   - **id**: candidate identifier
   - **lockfile**: lockfile containing the vulnerable package
@@ -214,6 +215,11 @@ Decision: CLEAN - effective mitigation in place
 - Handles sensitive data (PII, credentials, financial)
 - Critical infrastructure (authentication, authorization, payment)
 
+**Increase severity if repo.md context is available:**
+- Business criticality is **high** → lean toward keeping or increasing severity
+- Project handles sensitive data types matching the vulnerability (e.g., a data-disclosure vuln in a project handling PII)
+- Component map shows the vulnerable code is in a **high-criticality** component
+
 **Decrease severity if:**
 - Strong authentication required (not just any authenticated user)
 - Input validation reduces attack surface
@@ -237,6 +243,15 @@ Adjusted: HIGH - Sensitive data exposure with easy access
 ```
 
 ## Task
+
+### Phase 0: Load Repository Context
+
+1. **Read `<cache_dir>/repo.md`** if it exists
+   - Extract **business criticality** (high/medium/low)
+   - Extract **sensitive data types** (PII, payment, credentials, health, financial, etc.)
+   - Extract **component map** (directory → type, criticality score, description)
+   - Note which frameworks are in use (helps assess mitigations)
+2. If the file does not exist, note "no repo context available" and continue — this is not an error
 
 ### Phase 1: Initial Triage (5 seconds)
 

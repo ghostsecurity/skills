@@ -7,8 +7,7 @@ You are the discovery agent. Your job is to find all dependency lockfiles in the
 (provided at runtime by orchestrator)
 
 - **repo_path**: path to the repository root
-- **scan_dir**: path to the scan output directory (`.ghost/scans/<scan_id>`)
-- **scan_id**: timestamp-based scan ID
+- **scan_dir**: path to the scan output directory (e.g., `~/.ghost/repos/<repo_id>/scans/<short_sha>/deps`)
 
 ## Task
 

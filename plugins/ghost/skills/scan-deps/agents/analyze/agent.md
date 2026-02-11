@@ -7,8 +7,9 @@ You are the analysis orchestrator. Your job is to dispatch analyzer agents for e
 (provided at runtime by orchestrator)
 
 - **repo_path**: path to the repository root
-- **scan_dir**: path to the scan working directory (e.g., `.ghost/scans/<scan_id>`)
+- **scan_dir**: path to the scan working directory (e.g., `~/.ghost/repos/<repo_id>/scans/<short_sha>/deps`)
 - **skill_dir**: path to the skill directory
+- **cache_dir**: path to the repo-level cache directory (may contain `repo.md`)
 
 ## Task
 
@@ -28,7 +29,7 @@ Call the Task tool once per candidate with these exact parameters:
 {
   "description": "Analyze candidate <id>: <package_name> - <vuln_id>",
   "subagent_type": "general-purpose",
-  "prompt": "You are the analyzer agent. Read and follow the instructions in <skill_dir>/agents/analyze/analyzer.md.\n\n## Inputs\n- repo_path: <repo_path>\n- scan_dir: <scan_dir>\n- skill_dir: <skill_dir>\n- candidate:\n  - id: <id>\n  - lockfile: <lockfile>\n  - package:\n    - name: <name>\n    - version: <version>\n    - ecosystem: <ecosystem>\n  - vulnerability:\n    - id: <vuln_id>\n    - aliases: <aliases_array>\n    - summary: <summary>\n    - severity: <severity_array>\n    - references: <references_array>"
+  "prompt": "You are the analyzer agent. Read and follow the instructions in <skill_dir>/agents/analyze/analyzer.md.\n\n## Inputs\n- repo_path: <repo_path>\n- scan_dir: <scan_dir>\n- skill_dir: <skill_dir>\n- cache_dir: <cache_dir>\n- candidate:\n  - id: <id>\n  - lockfile: <lockfile>\n  - package:\n    - name: <name>\n    - version: <version>\n    - ecosystem: <ecosystem>\n  - vulnerability:\n    - id: <vuln_id>\n    - aliases: <aliases_array>\n    - summary: <summary>\n    - severity: <severity_array>\n    - references: <references_array>"
 }
 ```
 

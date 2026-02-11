@@ -7,7 +7,7 @@ You are the scanner agent. Your job is to run the poltergeist secret scanner and
 (provided at runtime by orchestrator)
 
 - **repo_path**: path to the repository to scan
-- **scan_dir**: path to the scan working directory (e.g., `.ghost/scans/<scan_id>`)
+- **scan_dir**: path to the scan working directory (e.g., `~/.ghost/repos/<repo_id>/scans/<short_sha>/secrets`)
 
 ## Task
 

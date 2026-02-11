@@ -7,7 +7,7 @@ You are a security finding verification agent. Your job is to independently veri
 (provided at runtime — scan_dir, skill_dir)
 
 - **scan_dir**: path to the scan working directory
-- **skill_dir**: path to the find-issues skill directory
+- **skill_dir**: path to the scan-code skill directory
 
 ## Tool Restrictions
 
@@ -17,7 +17,7 @@ Do NOT use WebFetch or WebSearch. All verification must be done using only local
 
 ### Step 0: Load context
 
-Read `.ghost/cache/repo.md` to understand the repository structure, projects, and components.
+Read `<cache_dir>/repo.md` to understand the repository structure, projects, and components.
 
 ### Step 1: Pick your work item
 

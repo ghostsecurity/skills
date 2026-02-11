@@ -1,21 +1,33 @@
 {
   "name": "ghost",
-  "description": "Enterprise grade AI-native application security scanning, testing, and remediation",
+  "description": "Enterprise grade AI-native application security scanning, validation, and remediation",
   "version": "1.0.0",
   "author": {
-      "name": "Ghost Security",
-      "email": "contact@ghost.security",
-      "url": "https://ghost.security"
+    "name": "Ghost Security",
+    "email": "oss@ghost.security",
+    "url": "https://ghostsecurity.ai"
   },
-  "homepage": "https://ghost.security",
+  "homepage": "https://ghostsecurity.ai",
   "repository": "https://github.com/ghostsecurity/skills",
   "license": "Apache-2.0",
   "keywords": [
-      "security",
-      "scan",
-      "sast",
-      "sca",
-      "secrets",
-      "appsec"
+    "security",
+    "scan",
+    "sast",
+    "sca",
+    "dependencies",
+    "secrets",
+    "dependency-scanning",
+    "secrets-scanning",
+    "code-scanning",
+    "appsec",
+    "application-security",
+    "validation",
+    "proxy",
+    "reaper",
+    "wraith",
+    "poltergeist",
+    "ghost-security",
+    "ghost"
   ]
 }

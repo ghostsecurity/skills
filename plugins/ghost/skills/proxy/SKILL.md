@@ -1,11 +1,28 @@
 ---
-name: proxy
 description: This skill should be used when the user asks to "start the proxy", "capture traffic", "intercept requests", "inspect HTTP traffic", "search captured requests", "view request/response", or needs to use the reaper MITM proxy to observe or test live web application traffic. Used in conjunction with the validate skill to confirm security vulnerabilities through live testing.
 ---
 
 # Reaper MITM Proxy
 
 Reaper is a CLI-based MITM HTTPS proxy for application security testing. It intercepts, logs, and allows inspection of HTTP/HTTPS traffic flowing through it. Use it to capture live request/response pairs for security validation.
+
+## Prerequisites
+
+Before using any reaper command, check if the binary is installed:
+
+```bash
+~/.ghost/bin/reaper version 2>/dev/null || echo "NOT_INSTALLED"
+```
+
+If not installed, run the install script bundled with this skill:
+
+```bash
+bash <skill_dir>/scripts/install-reaper.sh
+```
+
+Where `<skill_dir>` is the directory containing this SKILL.md file. After installation the binary will be at `~/.ghost/bin/reaper`.
+
+All `reaper` commands in this document should be invoked as `~/.ghost/bin/reaper` unless `~/.ghost/bin` is on `PATH`.
 
 ## Quick Reference
 

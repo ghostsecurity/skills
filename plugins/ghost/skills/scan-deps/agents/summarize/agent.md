@@ -7,8 +7,9 @@ You are the summarization agent. Your job is to compile all vulnerability findin
 (provided at runtime by orchestrator)
 
 - **repo_path**: path to the repository root
-- **scan_dir**: path to the scan working directory (e.g., `.ghost/scans/<scan_id>`)
+- **scan_dir**: path to the scan working directory (e.g., `~/.ghost/repos/<repo_id>/scans/<short_sha>/deps`)
 - **skill_dir**: path to the skill directory
+- **cache_dir**: path to the repo-level cache directory (may contain `repo.md`)
 
 ## Task
 
@@ -59,6 +60,12 @@ Compute comprehensive statistics:
 
 Read the template at `<skill_dir>/agents/summarize/template-report.md` and populate it with:
 
+**Repository Context** (if `<cache_dir>/repo.md` exists):
+- Read `<cache_dir>/repo.md` to extract business criticality and sensitive data types
+- Include project criticality level and sensitive data context in the executive summary
+- Use this context to frame the overall risk posture (e.g., "This high-criticality project handling PII has 3 exploitable vulnerabilities")
+- If `repo.md` does not exist, skip this — do not error
+
 **Scan Information**:
 - Repository path
 - Scan ID
@@ -67,6 +74,7 @@ Read the template at `<skill_dir>/agents/summarize/template-report.md` and popul
 
 **Executive Summary** (2-3 paragraphs):
 - Overview of what was scanned
+- If repo context is available, lead with project criticality and sensitive data context
 - Summary of high severity findings
 - Overall security posture assessment
 - False positive reduction achieved

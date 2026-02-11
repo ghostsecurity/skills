@@ -1,12 +1,9 @@
 ---
-name: ghost:scan-sca
 description: |
   Ghost Security - Software Composition Analysis scanner.
   Scans dependency lockfiles for known vulnerabilities.
 allowed-tools: Read, Glob, Grep, Bash, Task, TodoRead, TodoWrite
 argument-hint: "[path-to-scan]"
-disable-model-invocation: true
-user-invocable: true
 ---
 
 # Ghost Security SCA Scanner — Orchestrator
@@ -16,8 +13,8 @@ You are the top-level orchestrator for Software Composition Analysis (SCA) scann
 ## Defaults
 
 - **repo_path**: the current working directory
-- **scan_dir**: `.ghost/scans/<scan_id>`
-- **scan_id**: `YYYYMMDD-HHMMSS` timestamp
+- **scan_dir**: `~/.ghost/repos/<repo_id>/scans/<short_sha>/deps`
+- **short_sha**: `git rev-parse --short HEAD` (falls back to `YYYYMMDD` for non-git dirs)
 
 $ARGUMENTS
 
@@ -29,12 +26,12 @@ Any values provided above override the defaults.
 
 ### Step 0: Setup
 
-Run this Bash command to generate scan_id, create the scan directory, and locate the skill files:
+Run this Bash command to compute the repo-specific output directory, create it, and locate the skill files:
 ```
-scan_id=$(date +%Y%m%d-%H%M%S) && mkdir -p .ghost/scans/$scan_id/findings && skill_dir=$(find . -path '*skills/scan-sca/SKILL.md' 2>/dev/null | head -1 | xargs dirname) && echo "scan_id=$scan_id skill_dir=$skill_dir"
+repo_name=$(basename "$(pwd)") && remote_url=$(git remote get-url origin 2>/dev/null || pwd) && short_hash=$(printf '%s' "$remote_url" | git hash-object --stdin | cut -c1-8) && repo_id="${repo_name}-${short_hash}" && short_sha=$(git rev-parse --short HEAD 2>/dev/null || date +%Y%m%d) && ghost_repo_dir="$HOME/.ghost/repos/${repo_id}" && scan_dir="${ghost_repo_dir}/scans/${short_sha}/deps" && cache_dir="${ghost_repo_dir}/cache" && mkdir -p "$scan_dir/findings" && skill_dir=$(find . -path '*skills/scan-deps/SKILL.md' 2>/dev/null | head -1 | xargs dirname) && echo "scan_dir=$scan_dir cache_dir=$cache_dir skill_dir=$skill_dir"
 ```
 
-Store `scan_id`, compute `scan_dir` = `<repo_path>/.ghost/scans/<scan_id>`, and store `skill_dir` (the absolute path to the skill directory containing `agents/`, `scripts/`, etc.).
+Store `scan_dir` (the absolute path under `~/.ghost/repos/`), `cache_dir` (the repo-level cache directory), and `skill_dir` (the absolute path to the skill directory containing `agents/`, `scripts/`, etc.).
 
 After this step, your only remaining tool is Task. Do not use Bash, Read, Grep, Glob, or any other tool for Steps 1–5.
 
@@ -58,7 +55,7 @@ Call the Task tool to discover lockfiles in the repository:
 {
   "description": "Discover lockfiles",
   "subagent_type": "general-purpose",
-  "prompt": "You are the discover agent. Read and follow the instructions in <skill_dir>/agents/discover/agent.md.\n\n## Inputs\n- repo_path: <repo_path>\n- scan_dir: <scan_dir>\n- scan_id: <scan_id>"
+  "prompt": "You are the discover agent. Read and follow the instructions in <skill_dir>/agents/discover/agent.md.\n\n## Inputs\n- repo_path: <repo_path>\n- scan_dir: <scan_dir>"
 }
 ```
 
@@ -88,7 +85,7 @@ Call the Task tool to analyze the vulnerability candidates:
 {
   "description": "Analyze vulnerability candidates",
   "subagent_type": "general-purpose",
-  "prompt": "You are the analysis agent. Read and follow the instructions in <skill_dir>/agents/analyze/agent.md.\n\n## Inputs\n- repo_path: <repo_path>\n- scan_dir: <scan_dir>\n- skill_dir: <skill_dir>"
+  "prompt": "You are the analysis agent. Read and follow the instructions in <skill_dir>/agents/analyze/agent.md.\n\n## Inputs\n- repo_path: <repo_path>\n- scan_dir: <scan_dir>\n- skill_dir: <skill_dir>\n- cache_dir: <cache_dir>"
 }
 ```
 
@@ -101,7 +98,7 @@ Call the Task tool to summarize the findings:
 {
   "description": "Summarize scan results",
   "subagent_type": "general-purpose",
-  "prompt": "You are the summarize agent. Read and follow the instructions in <skill_dir>/agents/summarize/agent.md.\n\n## Inputs\n- repo_path: <repo_path>\n- scan_dir: <scan_dir>\n- skill_dir: <skill_dir>"
+  "prompt": "You are the summarize agent. Read and follow the instructions in <skill_dir>/agents/summarize/agent.md.\n\n## Inputs\n- repo_path: <repo_path>\n- scan_dir: <scan_dir>\n- skill_dir: <skill_dir>\n- cache_dir: <cache_dir>"
 }
 ```
 
