@@ -2,21 +2,29 @@
 
 Plugin marketplace repository for [Ghost Security](https://ghost.security)'s AI-native application security skills for Claude Code.
 
-## Install
+## Quick Installation
 
-Install the skills plugin using the marketplace capability within Claude Code:
+With Claude Code:
+
+```
+claude plugin marketplace add ghostsecurity/skills
+claude plugin install ghost@ghost-security
+claude
+```
+
+<img src="docs/installation.gif" alt="Installing the Ghost Security Agent Plugin with Skills" width="550">
+
+
+
+Alternatively, install the skills plugin within Claude Code:
 
 ```
 /plugin marketplace add ghostsecurity/skills
 /plugin install ghost@ghost-security
 ```
 
-Or from outside Claude Code:
+Currently, you will need to restart Claude Code for the plugin to load.
 
-```
-claude plugin marketplace add ghostsecurity/skills
-claude plugin install ghost@ghost-security
-```
 
 ## Comprehensive Documentation
 
@@ -35,11 +43,31 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 | `ghost:report` | Combined security report across all scan results |
 | `ghost:validate` | Dynamic validation of findings against a live application (DAST) |
 
-### scan-deps
-![Demo](./docs/scan-deps.gif)
+### ghost:repo-context
 
-### scan-secrets
-![Demo](./docs/scan-secrets.gif)
+<img src="docs/repo-context.gif" alt="Running the Ghost Security Agent repository context skill" width="550">
+
+### ghost:scan-code
+
+<img src="docs/scan-code.gif" alt="Running the Ghost Security Agent scan code skill" width="550">
+
+### ghost:scan-deps
+
+<img src="docs/scan-deps.gif" alt="Running the Ghost Security Agent scan depdendencies skill" width="550">
+
+### ghost:scan-secrets
+
+<img src="docs/scan-secrets.gif" alt="Running the Ghost Security Agent scan secrets skill" width="550">
+
+### ghost:validate
+
+<div align="center">
+[<img alt="Validate a finding with the reaper skill" width="550px" src="docs/validate.png" />](https://www.youtube.com/watch?v=8Nzcs7bX1I4)
+</div>
+
+### ghost:report
+
+<img src="docs/report.gif" alt="Running the Ghost Security Agent report skill" width="550">
 
 ## Contributions, Feedback, Feature Requests, and Issues
 
