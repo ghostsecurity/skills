@@ -65,7 +65,7 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 ### ghost:validate
 
 <div align="center">
-[![Validate a finding with the reaper skill](https://github.com/ghostsecurity/skills/blob/327e6de8420e4b6ce4bcc5ab45b4e1c2c06d3204/docs/validate.png)](https://www.youtube.com/watch?v=8Nzcs7bX1I4)
+<a href="https://www.youtube.com/watch?v=8Nzcs7bX1I4"><img src="docs/validate.png" alt="Running the Ghost Security Agent scan secrets skill" width="800"></a>
 </div>
 
 ### ghost:report
