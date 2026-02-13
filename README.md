@@ -11,10 +11,9 @@ claude plugin marketplace add ghostsecurity/skills
 claude plugin install ghost@ghost-security
 claude
 ```
-
+<div align="center">
 <img src="docs/installation.gif" alt="Installing the Ghost Security Agent Plugin with Skills" width="550">
-
-
+</div>
 
 Alternatively, install the skills plugin within Claude Code:
 
@@ -44,30 +43,35 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 | `ghost:validate` | Dynamic validation of findings against a live application (DAST) |
 
 ### ghost:repo-context
-
-<img src="docs/repo-context.gif" alt="Running the Ghost Security Agent repository context skill" width="550">
+<div align="center">
+<img src="docs/repo-context.gif" alt="Running the Ghost Security Agent repository context skill" width="800">
+</div>
 
 ### ghost:scan-code
-
-<img src="docs/scan-code.gif" alt="Running the Ghost Security Agent scan code skill" width="550">
+<div align="center">
+<img src="docs/scan-code.gif" alt="Running the Ghost Security Agent scan code skill" width="800">
+</div>
 
 ### ghost:scan-deps
-
-<img src="docs/scan-deps.gif" alt="Running the Ghost Security Agent scan depdendencies skill" width="550">
+<div align="center">
+<img src="docs/scan-deps.gif" alt="Running the Ghost Security Agent scan depdendencies skill" width="800">
+</div>
 
 ### ghost:scan-secrets
-
-<img src="docs/scan-secrets.gif" alt="Running the Ghost Security Agent scan secrets skill" width="550">
+<div align="center">
+<img src="docs/scan-secrets.gif" alt="Running the Ghost Security Agent scan secrets skill" width="800">
+</div>
 
 ### ghost:validate
 
 <div align="center">
-[<img alt="Validate a finding with the reaper skill" width="550px" src="docs/validate.png" />](https://www.youtube.com/watch?v=8Nzcs7bX1I4)
+[![Validate a finding with the reaper skill](https://github.com/ghostsecurity/skills/blob/327e6de8420e4b6ce4bcc5ab45b4e1c2c06d3204/docs/validate.png)](https://www.youtube.com/watch?v=8Nzcs7bX1I4)
 </div>
 
 ### ghost:report
-
-<img src="docs/report.gif" alt="Running the Ghost Security Agent report skill" width="550">
+<div align="center">
+<img src="docs/report.gif" alt="Running the Ghost Security Agent report skill" width="800">
+</div>
 
 ## Contributions, Feedback, Feature Requests, and Issues
 
