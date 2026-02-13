@@ -13,16 +13,13 @@ You are the initialization agent. Your job is to ensure the poltergeist binary i
 Run the install script to ensure poltergeist is installed:
 
 ```bash
-bash "<skill_dir>/scripts/install-poltergeist.sh"
+curl -sfL https://raw.githubusercontent.com/ghostsecurity/poltergeist/main/scripts/install.sh | bash
 ```
 
 The script will:
 1. Detect the platform (Linux/macOS/Windows, amd64/arm64)
-2. Check if poltergeist is already installed at `~/.ghost/bin/poltergeist`
-3. If not installed, try to download from GitHub releases
-4. If GitHub is unavailable (private repo), fall back to `/tmp/poltergeist/releases/latest/`
-5. Extract and install the binary
-6. Verify the installation
+2. Check if the latest version of poltergeist is already installed at `~/.ghost/bin/poltergeist`
+3. If not install/update and verify the installation
 
 ## Binary Location
 

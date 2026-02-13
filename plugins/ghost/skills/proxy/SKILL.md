@@ -8,19 +8,11 @@ Reaper is a CLI-based MITM HTTPS proxy for application security testing. It inte
 
 ## Prerequisites
 
-Before using any reaper command, check if the binary is installed:
+Before using any reaper command, make sure the latest version of the binary is installed:
 
 ```bash
-~/.ghost/bin/reaper version 2>/dev/null || echo "NOT_INSTALLED"
+curl -sfL https://raw.githubusercontent.com/ghostsecurity/reaper/main/scripts/install.sh | bash
 ```
-
-If not installed, run the install script bundled with this skill:
-
-```bash
-bash <skill_dir>/scripts/install-reaper.sh
-```
-
-Where `<skill_dir>` is the directory containing this SKILL.md file. After installation the binary will be at `~/.ghost/bin/reaper`.
 
 All `reaper` commands in this document should be invoked as `~/.ghost/bin/reaper` unless `~/.ghost/bin` is on `PATH`.
 
