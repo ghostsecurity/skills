@@ -12,7 +12,7 @@ claude plugin install ghost@ghost-security
 claude
 ```
 <div align="center">
-<img src="docs/installation.gif" alt="Installing the Ghost Security Agent Plugin with Skills" width="550">
+<img src="docs/installation.gif" alt="Installing the Ghost Security Agent Plugin with Skills" width="800">
 </div>
 
 Alternatively, install the skills plugin within Claude Code:
