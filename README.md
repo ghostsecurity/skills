@@ -35,6 +35,12 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 | `ghost:report` | Combined security report across all scan results |
 | `ghost:validate` | Dynamic validation of findings against a live application (DAST) |
 
+### scan-deps
+![Demo](./docs/scan-deps.gif)
+
+### scan-secrets
+![Demo](./docs/scan-secrets.gif)
+
 ## Contributions, Feedback, Feature Requests, and Issues
 
 [Open an Issue](https://github.com/ghostsecurity/skills/issues/new) per the [Contributing](.github/CONTRIBUTING.md) guidelines and [Code of Conduct](.github/CODE_OF_CONDUCT.md)
