@@ -13,16 +13,13 @@ You are the initialization agent. Your job is to ensure the wraith binary is ava
 Run the install script to ensure wraith is installed:
 
 ```bash
-bash "<skill_dir>/scripts/install-wraith.sh"
+curl -sfL https://raw.githubusercontent.com/ghostsecurity/wraith/main/scripts/install.sh | bash
 ```
 
 The script will:
 1. Detect the platform (Linux/macOS/Windows, amd64/arm64)
-2. Check if wraith is already installed at `~/.ghost/bin/wraith`
-3. If not installed, try to download from GitHub releases
-4. If GitHub is unavailable, fall back to `~/.ghost/releases/latest/`
-5. Extract and install the wraith and osv-scanner binaries
-6. Verify the installation
+2. Check if the latest version of wraith is already installed at `~/.ghost/bin/wraith`
+3. If not install/update and verify the installation
 
 ## Binary Location
 
