@@ -22,6 +22,7 @@ run_one() {
 $extra_inputs"
   fi
 
+  unset CLAUDECODE
   claude -p "Read and follow $skill_dir/prompts/$prompt.
 
 ## Inputs

@@ -35,40 +35,41 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 
 | Skill | Description |
 |-------|-------------|
-| `ghost:repo-context` | Build shared repository context (business criticality, sensitive data, component map) |
-| `ghost:scan-deps` | Exploitability analysis of dependency vulnerabilities (SCA) |
-| `ghost:scan-secrets` | Context assessment of detected secrets and credentials |
-| `ghost:scan-code` | AI-powered detection of code security issues (SAST) |
-| `ghost:report` | Combined security report across all scan results |
-| `ghost:validate` | Dynamic validation of findings against a live application (DAST) |
+| `ghost-repo-context` | Build shared repository context (business criticality, sensitive data, component map) |
+| `ghost-scan-deps` | Exploitability analysis of dependency vulnerabilities (SCA) |
+| `ghost-scan-secrets` | Context assessment of detected secrets and credentials |
+| `ghost-scan-code` | AI-powered detection of code security issues (SAST) |
+| `ghost-report` | Combined security report across all scan results |
+| `ghost-validate` | Dynamic validation of findings against a live application (DAST) |
+| `ghost-proxy` | HTTP proxy for the `ghost-validate` skill |
 
-### ghost:repo-context
+### ghost-repo-context
 <div align="center">
 <img src="docs/repo-context.gif" alt="Running the Ghost Security Agent repository context skill" width="800">
 </div>
 
-### ghost:scan-code
+### ghost-scan-code
 <div align="center">
 <img src="docs/scan-code.gif" alt="Running the Ghost Security Agent scan code skill" width="800">
 </div>
 
-### ghost:scan-deps
+### ghost-scan-deps
 <div align="center">
 <img src="docs/scan-deps.gif" alt="Running the Ghost Security Agent scan depdendencies skill" width="800">
 </div>
 
-### ghost:scan-secrets
+### ghost-scan-secrets
 <div align="center">
 <img src="docs/scan-secrets.gif" alt="Running the Ghost Security Agent scan secrets skill" width="800">
 </div>
 
-### ghost:validate
+### ghost-validate
 
 <div align="center">
 <a href="https://www.youtube.com/watch?v=8Nzcs7bX1I4"><img src="docs/validate.png" alt="Running the Ghost Security Agent scan secrets skill" width="800"></a>
 </div>
 
-### ghost:report
+### ghost-report
 <div align="center">
 <img src="docs/report.gif" alt="Running the Ghost Security Agent report skill" width="800">
 </div>

@@ -1,6 +1,9 @@
 ---
-name: "ghost:proxy"
-description: This skill should be used when the user asks to "start the proxy", "capture traffic", "intercept requests", "inspect HTTP traffic", "search captured requests", "view request/response", or needs to use the reaper MITM proxy to observe or test live web application traffic. Used in conjunction with the validate skill to confirm security vulnerabilities through live testing.
+name: "ghost-proxy"
+description: Starts and controls the reaper MITM proxy to capture, inspect, search, and replay HTTP/HTTPS traffic between clients and servers. Capabilities include starting/stopping the proxy scoped to specific domains, viewing captured request/response logs, searching traffic by method/path/status/host, and inspecting full raw HTTP entries for security analysis. Use when the user asks to "start the proxy", "capture traffic", "intercept requests", "inspect HTTP traffic", "search captured requests", or "view request/response".
+license: apache-2.0
+metadata:
+  version: 1.1.0
 ---
 
 # Reaper MITM Proxy
@@ -144,11 +147,13 @@ reaper stop
 When used with the `validate` skill (may need to collaborate with the user to setup the test environment):
 
 1. Start reaper scoped to the application domain
-2. Authenticate (or ask the user to authenticate) as a normal user and exercise the vulnerable endpoint legitimately
-3. Search for the captured request to understand the expected request format
-4. Craft and send a malicious request that exercises the exploit described in the finding
-5. Inspect the response to determine if the exploit succeeded
-6. Use `reaper get <id>` to capture the full request/response as evidence
+2. Verify traffic is being captured by running `reaper logs` — at least one entry should appear after routing a test request through the proxy
+3. If no entries appear, verify proxy settings and domain scope match the target
+4. Authenticate (or ask the user to authenticate) as a normal user and exercise the vulnerable endpoint legitimately
+5. Search for the captured request to understand the expected request format
+6. Craft and send a malicious request that exercises the exploit described in the finding
+7. Inspect the response to determine if the exploit succeeded
+8. Use `reaper get <id>` to capture the full request/response as evidence
 
 ## Data Storage
 

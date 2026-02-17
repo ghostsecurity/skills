@@ -1,8 +1,11 @@
 ---
-name: "ghost:scan-code"
-description: "Find security issues in a repository by planning and executing targeted vulnerability scans."
+name: "ghost-scan-code"
+description: "Ghost Security - SAST code scanner. Finds security vulnerabilities in source code by planning and executing targeted scans for issues like SQL injection, XSS, BOLA, BFLA, SSRF, and other OWASP categories. Use when the user asks for a code security audit, SAST scan, vulnerability scan of source code, or wants to find security flaws in a codebase."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 argument-hint: "[depth=quick]"
+license: apache-2.0
+metadata:
+  version: 1.1.0
 ---
 
 # Find Issues
@@ -45,7 +48,9 @@ Otherwise, run the planner using [scripts/loop.sh](scripts/loop.sh):
 bash <path-to-loop.sh> $scan_dir planner.md "- depth: <depth>" 1 $cache_dir
 ```
 
-Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off.
+Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off. If it fails 3 times consecutively with the same error, stop and report the failure.
+
+**Verify:** `$scan_dir/plan.md` exists and contains at least one `## Project:` section before proceeding.
 
 ---
 
@@ -71,7 +76,9 @@ Using [scripts/loop.sh](scripts/loop.sh):
 bash <path-to-loop.sh> $scan_dir nominator.md "- depth: <depth>" 5 $cache_dir
 ```
 
-Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off.
+Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off. If it fails 3 times consecutively with the same error, stop and report the failure.
+
+**Verify:** `$scan_dir/nominations.md` contains at least one `- [x]` line before proceeding.
 
 ---
 
@@ -96,7 +103,9 @@ Using [scripts/loop.sh](scripts/loop.sh):
 bash <path-to-loop.sh> $scan_dir analyzer.md "" 5 $cache_dir
 ```
 
-Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off.
+Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off. If it fails 3 times consecutively with the same error, stop and report the failure.
+
+**Verify:** `$scan_dir/analyses.md` contains at least one `- [x]` line before proceeding.
 
 ---
 
@@ -110,7 +119,7 @@ Using [scripts/loop.sh](scripts/loop.sh):
 bash <path-to-loop.sh> $scan_dir verifier.md "" 5 $cache_dir
 ```
 
-Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off.
+Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off. If it fails 3 times consecutively with the same error, stop and report the failure.
 
 ---
 

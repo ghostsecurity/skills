@@ -16,14 +16,14 @@ Traditional SCA tools report every CVE found in your dependency tree, leading to
 ## Usage
 
 ```
-/ghost:scan-deps [path-to-scan]
+/ghost-scan-deps [path-to-scan]
 ```
 
 Examples:
 ```
-/ghost:scan-deps .                    # Scan current directory
-/ghost:scan-deps ./backend            # Scan specific directory
-/ghost:scan-deps /path/to/repo        # Scan absolute path
+/ghost-scan-deps .                    # Scan current directory
+/ghost-scan-deps ./backend            # Scan specific directory
+/ghost-scan-deps /path/to/repo        # Scan absolute path
 ```
 
 The scanner will automatically discover all lockfiles in the repository.
@@ -207,7 +207,7 @@ To integrate into your CI/CD pipeline:
 Example GitHub Actions:
 ```yaml
 - name: Run SCA Scan
-  run: claude-code /ghost:scan-deps
+  run: claude-code /ghost-scan-deps
 
 - name: Check for HIGH findings
   run: |
