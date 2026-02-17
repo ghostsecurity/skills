@@ -1,4 +1,5 @@
 ---
+name: "ghost:scan-secrets"
 description: |
   Ghost Security - Secrets and credentials scanner.
   Scans codebase for leaked API keys, tokens, passwords, and sensitive data.

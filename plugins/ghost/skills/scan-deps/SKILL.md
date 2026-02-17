@@ -1,4 +1,5 @@
 ---
+name: "ghost:scan-deps"
 description: |
   Ghost Security - Software Composition Analysis scanner.
   Scans dependency lockfiles for known vulnerabilities.

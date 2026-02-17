@@ -1,4 +1,5 @@
 ---
+name: "ghost:scan-code"
 description: "Find security issues in a repository by planning and executing targeted vulnerability scans."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 argument-hint: "[depth=quick]"

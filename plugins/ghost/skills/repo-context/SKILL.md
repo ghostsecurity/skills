@@ -1,4 +1,5 @@
 ---
+name: "ghost:repo-context"
 description: "Ghost repository/repo context builder. Gathers background codebase context about the contents and structure of the repository and outputs it to a file called repo.md as context to other skills performing code security analysis."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
