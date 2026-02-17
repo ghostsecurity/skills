@@ -112,6 +112,7 @@ If a per-scan report does not exist for deps or secrets, note it as unavailable.
 2. Populate the template with collected data:
    - Fill Scan Information with repository name, commit SHA, date, and which scans ran
    - Write Executive Summary using repo context and aggregated findings
+   - For all writing elements in this security-focused, objective and fact based report, use a neutral, human tone that balances expertise with ease of reading. Do not use emojis, em-dashes, etc.
    - For Critical & High findings (severity = high): inline the substantive content from each finding file directly into the report — include code snippets, assessment tables, remediation commands, and all relevant detail so the report is fully self-contained
    - For Medium findings: write a full subsection per finding with description, location, code context, and remediation (not a condensed table)
    - Omit low-severity findings (they remain in per-scan finding files only)
