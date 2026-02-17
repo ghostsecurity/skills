@@ -1,10 +1,12 @@
 ---
-name: "ghost:scan-secrets"
+name: "ghost-scan-secrets"
 description: |
-  Ghost Security - Secrets and credentials scanner.
-  Scans codebase for leaked API keys, tokens, passwords, and sensitive data.
+  Ghost Security - Secrets and credentials scanner. Scans codebase for leaked API keys, tokens, passwords, and sensitive data. Detects hardcoded secrets and generates findings with severity and remediation guidance. Use when the user asks to check for leaked secrets, scan for credentials, find hardcoded API keys or passwords, detect exposed .env values, or audit code for sensitive data exposure.
 allowed-tools: Read, Glob, Grep, Bash, Task, TodoRead, TodoWrite
 argument-hint: "[path-to-scan]"
+license: apache-2.0
+metadata:
+  version: 1.1.0
 ---
 
 # Ghost Security Secrets Scanner — Orchestrator
@@ -24,6 +26,12 @@ Any values provided above override the defaults.
 ---
 
 ## Execution
+
+1. **Setup** — compute paths and create output directories
+2. **Initialize Poltergeist** — install the poltergeist binary
+3. **Scan for Secrets** — run poltergeist against the codebase
+4. **Analyze Candidates** — assess each candidate for confirmation
+5. **Summarize Results** — generate the final scan report
 
 ### Step 0: Setup
 

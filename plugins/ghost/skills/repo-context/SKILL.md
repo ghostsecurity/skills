@@ -1,7 +1,10 @@
 ---
-name: "ghost:repo-context"
-description: "Ghost repository/repo context builder. Gathers background codebase context about the contents and structure of the repository and outputs it to a file called repo.md as context to other skills performing code security analysis."
+name: "ghost-repo-context"
+description: "Scans directory structure, detects projects, maps dependencies, and documents code organization into a repo.md file. Use when the user needs a codebase overview, project structure map, or repository context before security analysis."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+license: apache-2.0
+metadata:
+  version: 1.1.0
 ---
 
 # Repository Context Builder
@@ -47,29 +50,16 @@ If it does not exist, run `mkdir -p <cache_dir>` and continue.
 
 ---
 
-## Step 1: Detect Projects
+## Workflow
 
-Read `<skill_dir>/detector.md` and follow its instructions against `<repo_path>`. This will produce a list of detected projects and a repository summary.
+1. **Detect Projects** — Read `<skill_dir>/detector.md` and follow its instructions against `<repo_path>`. Save the full detection output (project details needed for step 2). If detection finds no projects, write a minimal `repo.md` noting "No projects detected" and skip to step 4.
 
-Save the full detection output — you'll need each project's details for Step 2.
+2. **Summarize Each Project** — Read `<skill_dir>/summarizer.md`. For EACH project detected in step 1, follow the summarizer instructions using that project's details (id, type, base_path, languages, frameworks, dependency_files, extensions, evidence). Collect the summary for each project. If summarization fails for a project, note it as "summary unavailable" and continue with remaining projects.
 
-## Step 2: Summarize Each Project
+3. **Write repo.md** — Combine detection and summary results into `<cache_dir>/repo.md` using the format in `<skill_dir>/template-repo.md`. For each project include:
+   - Detection: ID, Type, Base Path, Languages, Frameworks, Dependency Files, Extensions, Evidence
+   - Summary: Architectural summary, Sensitive Data Types, Business Criticality, Component Map, Evidence
 
-Read `<skill_dir>/summarizer.md`. Then, for EACH project detected in Step 1, follow the summarizer instructions using that project's details (id, type, base_path, languages, frameworks, dependency_files, extensions, evidence) as inputs.
+4. **Validate** — Read `<cache_dir>/repo.md` back and verify it contains the expected sections from `<skill_dir>/template-repo.md` (e.g., project entries with Detection and Summary fields). If the file is missing or malformed, retry the write once before reporting an error.
 
-Collect the summary result for each project.
-
-## Step 3: Write repo.md
-
-Combine the detection and summary results into `<cache_dir>/repo.md`. Read `<skill_dir>/template-repo.md` for the exact output format.
-
-For each project, include:
-- Detection section (from Step 1): ID, Type, Base Path, Languages, Frameworks, Dependency Files, Extensions, Evidence
-- Summary section (from Step 2): architectural summary, Sensitive Data Types, Business Criticality, Component Map, Evidence
-
-## Step 4: Show Output
-
-```
-Repository context is at: <cache_dir>/repo.md
-
-```
+5. **Output** — Return: `Repository context is at: <cache_dir>/repo.md`

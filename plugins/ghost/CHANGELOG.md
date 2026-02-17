@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.0.0 — 2025-02-13
+## 1.1.0 - 2026-02-17
+
+Plugin naming convention and compliance/passing scores according to tessl best practices. Instead of **plugin:skill-name** it's **plugin-skill-name**. When installed as a plugin in Claude Code, it will be invocable by **ghost-skill-name** as well as **plugin:skill-name**
+
+## 1.0.0 — 2026-02-13
 
 Initial release of the Ghost Security skills plugin for Claude Code.
 

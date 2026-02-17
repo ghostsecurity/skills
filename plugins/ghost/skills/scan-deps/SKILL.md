@@ -1,10 +1,12 @@
 ---
-name: "ghost:scan-deps"
+name: "ghost-scan-deps"
 description: |
-  Ghost Security - Software Composition Analysis scanner.
-  Scans dependency lockfiles for known vulnerabilities.
+  Ghost Security - Software Composition Analysis (SCA) scanner. Scans dependency lockfiles for known vulnerabilities, identifies CVEs, and generates findings with severity levels and remediation guidance. Use when the user asks about dependency vulnerabilities, vulnerable packages, CVE checks, security audits of dependencies, or wants to scan lockfiles like package-lock.json, yarn.lock, go.sum, or Gemfile.lock.
 allowed-tools: Read, Glob, Grep, Bash, Task, TodoRead, TodoWrite
 argument-hint: "[path-to-scan]"
+license: apache-2.0
+metadata:
+  version: 1.1.0
 ---
 
 # Ghost Security SCA Scanner — Orchestrator
@@ -24,6 +26,13 @@ Any values provided above override the defaults.
 ---
 
 ## Execution
+
+1. **Setup** — compute paths and create output directories
+2. **Initialize Wraith** — install the wraith binary
+3. **Discover Lockfiles** — find all dependency lockfiles in the repo
+4. **Scan for Vulnerabilities** — run wraith against each lockfile
+5. **Analyze Candidates** — assess exploitability of each candidate
+6. **Summarize Results** — generate the final scan report
 
 ### Step 0: Setup
 

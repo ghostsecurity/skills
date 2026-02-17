@@ -1,39 +1,26 @@
 ---
-name: "ghost:validate"
-description: This skill should be used when the user asks to "validate a finding", "check if a vulnerability is real", "triage a security finding", "confirm a vulnerability", "determine if a finding is a true positive or false positive", or provides a security finding for review. It guides systematic validation of security vulnerability findings through code analysis and optional live application testing.
+name: "ghost-validate"
+description: This skill should be used when the user asks to "validate a finding", "check if a vulnerability is real", "triage a security finding", "confirm a vulnerability", "determine if a finding is a true positive or false positive", or provides a security finding for review. It validates security vulnerability findings by tracing data flows, verifying exploit conditions, analyzing security controls, and optionally testing attack vectors against a live application.
+license: apache-2.0
+metadata:
+  version: 1.1.0
 ---
 
 # Security Finding Validation
 
-Validate whether a security vulnerability finding is a true positive (real, exploitable vulnerability) or a false positive (incorrectly flagged, not exploitable). Produce a clear determination with supporting evidence.
+Determine whether a security finding is a true positive or false positive. Produce a determination with supporting evidence.
 
 ## Input
 
-A finding can be provided in any of these ways:
+The user provides a finding as a file path or pasted text. If neither is provided, ask for one.
 
-1. **As a file path**: The user provides a path to a markdown/JSON/text file containing the finding
-2. **As pasted text**: The user pastes the finding directly in the conversation
-3. **Not yet provided**: If the user invokes the skill without providing a finding, ask them to either paste the finding text or provide a file path
-
-Key fields to extract from the finding (not all will be present):
-
-- **ID / Title**: Identifier and summary
-- **Severity / Exploit Feasibility**: Risk assessment
-- **Vector / Agent**: Vulnerability class (e.g. BFLA, BOLA, IDOR, XSS, SQLi)
-- **Repo / Source URL**: Where the vulnerable code lives
-- **File Path / Line Number / Method Name**: Exact location
-- **Endpoints**: HTTP methods and paths affected
-- **Description**: What the vulnerability is
-- **Exploit Walkthrough**: How an attacker would exploit it
-- **Vulnerable Code / Fixed Code**: The before/after code
-- **Remediation**: Suggested fix
-- **Validation Evidence**: Additional analysis made by the vulnerability scanning agent
+Extract: vulnerability class, specific claim, affected endpoint, code location, and any existing validation evidence.
 
 ## Validation Workflow
 
 ### Step 1: Understand the Finding
 
-Read the finding thoroughly. Identify:
+Identify:
 - The vulnerability class (BFLA, BOLA, XSS, SQLi, SSRF, etc.)
 - The specific claim being made (what authorization check is missing, what input is unsanitized, etc.)
 - The affected endpoint and HTTP method
@@ -41,20 +28,11 @@ Read the finding thoroughly. Identify:
 
 ### Step 2: Analyze the Source Code
 
-If a repo URL or local source is available, clone or read the relevant files:
-
-1. Read the vulnerable file at the specified line number
-2. Read all supporting files listed in the finding
-3. Trace the request flow from route registration through middleware to the handler
-4. Verify the specific claim: does the code actually lack the check described?
-
-Key questions to answer through code analysis:
-
-- **Is the endpoint reachable?** Trace from route registration to confirm the handler is mounted and accessible
-- **Is authentication enforced?** Check middleware chain for auth requirements
-- **Is the authorization check actually missing?** Compare what the code checks vs. what it should check
-- **Are there indirect protections?** Look for checks in middleware, helper functions, or ORM-level constraints that the scanner may have missed
-- **Is the vulnerable code path reachable?** Follow control flow to confirm the vulnerable branch executes under the described conditions
+1. Read the vulnerable file at the specified line number and all supporting files
+2. Trace the request flow from route registration through middleware to the handler
+3. Verify the specific claim — does the code actually lack the described check?
+4. Look for indirect protections (middleware, helpers, ORM constraints) the scanner may have missed
+5. Confirm the vulnerable code path is reachable under the described conditions
 
 ### Step 3: Live Validation (When Available)
 
@@ -79,7 +57,7 @@ Classify the finding as one of:
 
 ### Step 5: Report
 
-Produce a summary including:
+Output a summary in the following format:
 
 1. **Determination**: True Positive, False Positive, or Inconclusive
 2. **Confidence**: High, Medium, or Low
@@ -88,31 +66,20 @@ Produce a summary including:
 5. **Live Test Results** (if performed): Request/response pairs demonstrating the behavior
 6. **Recommendation**: Fix if true positive, close if false positive, gather more info if inconclusive
 
+Example:
+
+```
+## Validation Result
+- **Determination**: True Positive
+- **Confidence**: High
+- **Evidence**: Handler at routes/transfers.go:142 queries transfers by ID without checking ownership. No middleware or ORM-level constraint enforces user scoping.
+- **Recommendation**: Add ownership check — include user_id in the WHERE clause.
+```
+
 ### Step 6: Persist Results
 
 If the finding was provided as a file path, ask the user if they would like to append the validation details to the original finding file. If they agree, append a `## Validation` section to the file containing the determination, confidence, evidence summary, and recommendation.
 
 ## Vulnerability Class Reference
 
-### Authorization Flaws (BFLA/BOLA/IDOR)
-
-Look for:
-- Missing ownership checks in database queries (e.g., no `UserId` in WHERE clause)
-- Inconsistent authorization between similar operations (e.g., destination checked but source not checked)
-- Direct object references without access control
-- Horizontal privilege escalation (accessing other users' resources)
-- Vertical privilege escalation (accessing admin functions)
-
-### Injection (SQLi/XSS/Command Injection)
-
-Look for:
-- Unsanitized user input in queries, templates, or system commands
-- Missing parameterized queries or prepared statements
-- Reflected or stored user input without encoding
-
-### Authentication Flaws
-
-Look for:
-- Missing authentication middleware on protected routes
-- Bypassable auth checks (e.g., checking only one of multiple auth paths)
-- Session management issues
+See `VULNERABILITY_PATTERNS.md` in this skill directory for patterns to look for when validating authorization flaws (BFLA/BOLA/IDOR), injection (SQLi/XSS), and authentication flaws.

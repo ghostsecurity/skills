@@ -25,24 +25,24 @@ Full documentation, tutorials, and video usage guides are available at [ghostsec
 
 3. Build repository context (recommended before scanning):
    ```
-   /ghost:repo-context       # Build a shared repository context used by all the scan skills
+   /ghost-repo-context       # Build a shared repository context used by all the scan skills
    ```
 
 4. Run scans to understand the security posture of your repository:
    ```
-   /ghost:scan-deps     # Exploitability analysis of dependency vulnerabilities (SCA)
-   /ghost:scan-secrets  # Context assessment of detected secrets and credentials 
-   /ghost:scan-code     # AI-powered detection of code security issues (SAST)
+   /ghost-scan-deps     # Exploitability analysis of dependency vulnerabilities (SCA)
+   /ghost-scan-secrets  # Context assessment of detected secrets and credentials 
+   /ghost-scan-code     # AI-powered detection of code security issues (SAST)
    ```
 
 5. Generate a combined security report:
    ```
-   /ghost:report        # Combined security report across all scan results
+   /ghost-report        # Combined security report across all scan results
    ```
 
 6. Validate findings against a live application:
    ```
-   /ghost:validate      # Dynamic/live validation against a live application (DAST)
+   /ghost-validate      # Dynamic/live validation against a live application (DAST)
    ```
 
 ## Contributing

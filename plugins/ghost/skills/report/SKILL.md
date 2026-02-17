@@ -1,7 +1,10 @@
 ---
-name: "ghost:report"
-description: "Ghost Security — combined security report. Aggregates findings from all scan skills (scan-deps, scan-secrets, scan-code) into a single prioritized report focused on the highest risk, highest confidence issues."
+name: "ghost-report"
+description: "Ghost Security — combined security report. Aggregates findings from all scan skills (scan-deps, scan-secrets, scan-code) into a single prioritized report focused on the highest risk, highest confidence issues. Use when the user requests a security overview, vulnerability summary, full security audit, or combined scan results."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+license: apache-2.0
+metadata:
+  version: 1.1.0
 ---
 
 # Combined Security Report
@@ -57,9 +60,9 @@ If none of these directories exist, report an error:
 
 ```
 No scan results found in <scans_dir>. Run one or more scan skills first:
-  /ghost:scan-deps
-  /ghost:scan-secrets
-  /ghost:scan-code
+  /ghost-scan-deps
+  /ghost-scan-secrets
+  /ghost-scan-code
 ```
 
 And stop.

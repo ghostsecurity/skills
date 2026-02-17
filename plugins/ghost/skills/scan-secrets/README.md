@@ -5,14 +5,14 @@ AI-powered secrets and credentials scanner for codebases. Uses [poltergeist](htt
 ## Usage
 
 ```
-/ghost:scan-secrets [path-to-scan]
+/ghost-scan-secrets [path-to-scan]
 ```
 
 Examples:
 ```
-/ghost:scan-secrets .                    # Scan current directory
-/ghost:scan-secrets ./src                # Scan specific directory
-/ghost:scan-secrets /path/to/repo        # Scan absolute path
+/ghost-scan-secrets .                    # Scan current directory
+/ghost-scan-secrets ./src                # Scan specific directory
+/ghost-scan-secrets /path/to/repo        # Scan absolute path
 ```
 
 ## How It Works
