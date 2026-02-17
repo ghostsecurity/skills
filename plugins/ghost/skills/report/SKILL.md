@@ -1,4 +1,5 @@
 ---
+name: "ghost:report"
 description: "Ghost Security — combined security report. Aggregates findings from all scan skills (scan-deps, scan-secrets, scan-code) into a single prioritized report focused on the highest risk, highest confidence issues."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---

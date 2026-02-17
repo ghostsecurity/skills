@@ -1,4 +1,5 @@
 ---
+name: "ghost:validate"
 description: This skill should be used when the user asks to "validate a finding", "check if a vulnerability is real", "triage a security finding", "confirm a vulnerability", "determine if a finding is a true positive or false positive", or provides a security finding for review. It guides systematic validation of security vulnerability findings through code analysis and optional live application testing.
 ---
 

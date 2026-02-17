@@ -1,4 +1,5 @@
 ---
+name: "ghost:proxy"
 description: This skill should be used when the user asks to "start the proxy", "capture traffic", "intercept requests", "inspect HTTP traffic", "search captured requests", "view request/response", or needs to use the reaper MITM proxy to observe or test live web application traffic. Used in conjunction with the validate skill to confirm security vulnerabilities through live testing.
 ---
 
