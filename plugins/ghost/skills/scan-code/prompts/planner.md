@@ -8,7 +8,9 @@ Do NOT use WebFetch or WebSearch. All planning must be done using only local cod
 
 ## Inputs
 
-(provided at runtime — scan_dir, skill_dir, depth)
+(provided at runtime — scan_dir, skill_dir, depth, arguments)
+
+If `arguments` is provided, use it to override defaults. For example, if arguments specify a specific set of vectors, a custom vector count, or areas to focus on, apply those overrides instead of the depth defaults.
 
 Read these files to gather context:
 1. `<cache_dir>/repo.md` — project metadata (base_paths, types, criticality, languages, frameworks, sensitive data, component maps)
@@ -25,19 +27,18 @@ For other project types (iac, cli, library), return an entry with zero scans and
 
 The `depth` input controls how many vectors to select:
 
-**QUICK mode (top 5 vectors):**
-- Pick the 5 most relevant vectors based on project type, frameworks, criticality, and sensitive data
+**QUICK mode (top 3 vectors):**
+- Pick the 3 most relevant vectors based on project type, frameworks, criticality, and sensitive data
 - Prioritize high-impact vectors (injection, authz, authn) for projects handling user data
 - Each vector must come from the valid index.yaml list for that project type
 
-**BALANCED mode (top 15 vectors):**
-- Pick the 15 most relevant vectors, broader coverage across more agents
-- For frontend (15 total vectors), this is effectively full coverage
+**BALANCED mode (top 5 vectors):**
+- Pick the 5 most relevant vectors, broader coverage across more agents
 - Each vector must come from the valid index.yaml list for that project type
 
-**FULL mode (all vectors):**
-- Select every vector listed in index.yaml for the project type
-- No prioritization needed — include all
+**FULL mode (top 10 vectors):**
+- Pick the 10 most relevant vectors, broad coverage across agents
+- Each vector must come from the valid index.yaml list for that project type
 
 ### Decision Rules
 
