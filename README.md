@@ -45,22 +45,22 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 
 ### ghost-repo-context
 <div align="center">
-<img src="https://media.ghostsecurity.ai/skills/repo-context.gif" alt="Running the Ghost Security Agent repository context skill" width="800">
+<img src="https://raw.githubusercontent.com/ghostsecurity/skills/1fe7998/docs/repo-context.gif" alt="Running the Ghost Security Agent repository context skill" width="800">
 </div>
 
 ### ghost-scan-code
 <div align="center">
-<img src="https://media.ghostsecurity.ai/skills/scan-code.gif" alt="Running the Ghost Security Agent scan code skill" width="800">
+<img src="https://raw.githubusercontent.com/ghostsecurity/skills/1fe7998/docs/scan-code.gif" alt="Running the Ghost Security Agent scan code skill" width="800">
 </div>
 
 ### ghost-scan-deps
 <div align="center">
-<img src="https://media.ghostsecurity.ai/skills/scan-deps.gif" alt="Running the Ghost Security Agent scan depdendencies skill" width="800">
+<img src="https://raw.githubusercontent.com/ghostsecurity/skills/1fe7998/docs/scan-deps.gif" alt="Running the Ghost Security Agent scan depdendencies skill" width="800">
 </div>
 
 ### ghost-scan-secrets
 <div align="center">
-<img src="https://media.ghostsecurity.ai/skills/scan-secrets.gif" alt="Running the Ghost Security Agent scan secrets skill" width="800">
+<img src="https://raw.githubusercontent.com/ghostsecurity/skills/1fe7998/docs/scan-secrets.gif" alt="Running the Ghost Security Agent scan secrets skill" width="800">
 </div>
 
 ### ghost-validate
@@ -71,7 +71,7 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 
 ### ghost-report
 <div align="center">
-<img src="https://media.ghostsecurity.ai/skills/report.gif" alt="Running the Ghost Security Agent report skill" width="800">
+<img src="https://raw.githubusercontent.com/ghostsecurity/skills/1fe7998/docs/report.gif" alt="Running the Ghost Security Agent report skill" width="800">
 </div>
 
 ## Contributions, Feedback, Feature Requests, and Issues
