@@ -18,6 +18,8 @@ You find security issues in a repository. This skill plans which vulnerability v
 
 $ARGUMENTS
 
+> **Note:** Arguments passed can be used to customize the scan workflow if provided. For example, if the user specifies a specific set of vectors, count of vectors, specific candidate files, areas to focus on, count of candidate files, etc., ensure the relevant details are passed to the relevant steps in the skill.
+
 ## Supporting files
 
 - Loop script: [scripts/loop.sh](scripts/loop.sh)
@@ -35,6 +37,7 @@ repo_name=$(basename "$(pwd)") && remote_url=$(git remote get-url origin 2>/dev/
 1. Read `$cache_dir/repo.md` — if missing, run the repo-context skill first and then continue.
 2. Read [criteria/index.yaml](criteria/index.yaml) to get the valid agent→vector mappings per project type
 3. Set `depth` to `quick` if not provided
+4. If `depth` is `full`, warn the user that a full scan uses significantly more tokens and ask them to confirm before proceeding. If they decline, fall back to `balanced`.
 
 ---
 
@@ -45,7 +48,8 @@ If `$scan_dir/plan.md` already exists, skip to the next step.
 Otherwise, run the planner using [scripts/loop.sh](scripts/loop.sh):
 
 ```bash
-bash <path-to-loop.sh> $scan_dir planner.md "- depth: <depth>" 1 $cache_dir
+bash <path-to-loop.sh> $scan_dir planner.md "- depth: <depth>
+- arguments: <relevant argument overrides if any, otherwise omit>" 1 $cache_dir
 ```
 
 Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off. If it fails 3 times consecutively with the same error, stop and report the failure.
@@ -73,7 +77,8 @@ If `$scan_dir/nominations.md` already exists, change every top level task `- [x]
 Using [scripts/loop.sh](scripts/loop.sh):
 
 ```bash
-bash <path-to-loop.sh> $scan_dir nominator.md "- depth: <depth>" 5 $cache_dir
+bash <path-to-loop.sh> $scan_dir nominator.md "- depth: <depth>
+- arguments: <relevant argument overrides if any, otherwise omit>" 5 $cache_dir
 ```
 
 Use a 10-minute timeout. If the command times out, re-run it — the script resumes from where it left off. If it fails 3 times consecutively with the same error, stop and report the failure.
