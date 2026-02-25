@@ -20,8 +20,8 @@ Read these files to gather context:
 
 ### Project Filtering
 
-Only recommend scans for projects of type: **backend**, **frontend**, **mobile**.
-For other project types (iac, cli, library), return an entry with zero scans and reasoning: "Project type [type] is not currently supported for security scanning."
+Only recommend scans for projects of type: **backend**, **frontend**, **mobile**, **library**.
+For other project types (iac, cli), return an entry with zero scans and reasoning: "Project type [type] is not currently supported for security scanning."
 
 ### Scan Depth
 
@@ -50,6 +50,20 @@ Recommend vectors based on project characteristics:
 - Projects with raw SQL or database operations → injection vectors rank high
 - Frontend projects → xss, prototype_pollution, postmessage vectors rank high
 - Mobile projects → insecure_data_storage, insecure_communication vectors rank high
+- Library projects → see library-specific rules below
+
+**Library project rules:**
+- All library projects: unsafe_execution (eval-injection, unsafe-deserialization), path_handling, and injection/command-injection rank high
+- JS/TS libraries: prototype_pollution vectors rank highest — they are the most library-specific and impactful class
+- Python libraries: unsafe-deserialization and unsafe-yaml rank highest; command-injection and path-traversal follow
+- Go libraries: command-injection, path-traversal, ssrf, weak-random rank high
+- Libraries that parse untrusted formats (XML, YAML, archives): xxe, unsafe-yaml, zip-slip rank high
+- Libraries that make outbound HTTP requests: ssrf ranks high
+- Libraries with regex applied to input: redos ranks high (JS/TS and Python only)
+
+**Library exclusions — do NOT select these vectors for the listed languages:**
+- prototype_pollution (proto-pollution, property-injection): skip for Python and Go — these are JS/TS-only concepts
+- redos (catastrophic-backtracking): skip for Go — Go's regexp package uses RE2 (guaranteed linear time)
 
 ### Vector Validity
 

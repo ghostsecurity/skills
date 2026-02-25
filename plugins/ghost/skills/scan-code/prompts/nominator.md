@@ -35,7 +35,7 @@ Parse the line:
 
 Extract:
 - **base_path**: project base path (e.g., ".", "api", "frontend/src")
-- **type**: project type (backend, frontend, mobile)
+- **type**: project type (backend, frontend, mobile, library)
 - **agent**: agent name (e.g., "injection")
 - **vector**: vector name (e.g., "sql-injection")
 
@@ -58,11 +58,14 @@ Read `<skill_dir>/criteria/<type>.yaml` — look up the `<agent>` top-level key,
 **Strategy:**
 1. Parse the `candidates` hint — it describes what patterns, function calls, imports, or file types to look for.
 2. Determine the project's base path. Scope all searches to `<base_path>` (or repo root if base_path is ".").
-3. Use Grep to search for the patterns described in the candidates hint within the project scope.
-4. If Grep returns too many results, prioritize files in high-criticality directories (controllers, handlers, middleware, auth, services, routes, api).
-5. If Grep returns too few results, broaden the search or use Glob to find files by extension that are likely relevant.
-6. Deduplicate results.
-7. Verify every candidate path exists in the repository. Drop any that don't resolve to a real file.
+3. **Library projects only**: Use Glob to identify the public API surface first — the main entry point (`index.ts`, `index.js`, `src/index.*`, `__init__.py`, or the `main`/`exports` field in `package.json`). Note which files are directly exported or re-exported from the entry point — these are higher priority candidates.
+4. Use Grep to search for the patterns described in the candidates hint within the project scope.
+5. If Grep returns too many results, prioritize by project type:
+   - **backend/frontend/mobile**: prioritize files in high-criticality directories (controllers, handlers, middleware, auth, services, routes, api)
+   - **library**: prioritize files on the public API surface identified in step 3, then parser, serializer, and utility files; deprioritize internal helpers not reachable from public exports
+6. If Grep returns too few results, broaden the search or use Glob to find files by extension that are likely relevant.
+7. Deduplicate results.
+8. Verify every candidate path exists in the repository. Drop any that don't resolve to a real file.
 
 ### Step 4: Update tracker
 

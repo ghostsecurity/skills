@@ -76,7 +76,7 @@ Sample specific files to find sensitive data patterns:
 
 Cover:
 - What the project does (1 sentence)
-- Architecture pattern (MVC, REST API, microservice, monolith, SPA, etc.)
+- Architecture pattern (MVC, REST API, microservice, monolith, SPA, utility library, parsing/serialization library, SDK/client library, etc.)
 - Primary framework(s) — list only the main 1-2 application frameworks, not SDKs or utility libraries
 - How sensitive data is handled (auth approach, data storage, encryption)
 - Deployment context if evident from code (e.g., containerized, serverless, k8s)
@@ -89,10 +89,10 @@ Cover:
 | Score | Category | Examples |
 |-------|----------|----------|
 | **1.0** | Authentication, authorization, payment processing, credential/secret handling | auth/, security/, payment/, middleware/auth |
-| **0.9** | Core business logic, data validation, API endpoints handling sensitive data | controllers/, handlers/, validators/ |
-| **0.7-0.8** | Service layer, database access, key business operations | services/, repositories/, database/ |
+| **0.9** | Core business logic, data validation, API endpoints handling sensitive data, parser/serializer code in libraries | controllers/, handlers/, validators/, parser/, serializer/ |
+| **0.7-0.8** | Service layer, database access, key business operations, public API surface in libraries | services/, repositories/, database/, src/ (library entry points) |
 | **0.5-0.6** | Models/entities, utilities with data handling, configuration management | models/, entities/, config/ |
-| **0.3-0.4** | General utilities, helpers, formatters, shared types | utils/, helpers/, lib/, types/ |
+| **0.3-0.4** | General utilities, helpers, formatters, shared types, internal library helpers | utils/, helpers/, lib/, types/, internal/ |
 | **0.1-0.2** | Tests, documentation, build scripts, migrations | tests/, docs/, scripts/, migrations/ |
 | **0.0** | Static assets, generated code, vendor code | **Exclude these from the map** |
 
@@ -136,7 +136,8 @@ Return only the categories you find evidence for. Return "none" if no evidence f
 **Heuristic defaults** (override based on what you actually find):
 - backend, mobile, iac → high
 - frontend → medium
-- cli, library → low
+- cli → low
+- library → low (override to medium or high if the library parses untrusted data formats, handles credentials/secrets, or implements cryptographic operations)
 
 ---
 

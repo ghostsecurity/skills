@@ -48,10 +48,19 @@ For each criterion in the criteria list:
 ### Step 5: Check for missed mitigations
 
 Do targeted checks for common mitigations:
+
+**Application projects (backend, frontend, mobile):**
 - Framework-level protections (ORM auto-parameterization, template auto-escaping, CSRF middleware)
 - Middleware or decorators applied at the route level
 - Validation libraries or input sanitization in the request pipeline
 - Configuration that enables/disables security features
+
+**Library projects:**
+- Input validation or type checking within the vulnerable function or its call chain
+- Key filtering or sanitization (e.g., blocking `__proto__`, `constructor`, `prototype` keys)
+- Safe API defaults (e.g., safe YAML loader, disabled external entities)
+- Path normalization or base-directory enforcement in file operations
+- Note: libraries do not have framework middleware or route-level decorators — mitigations must exist in the library's own code
 
 Limit yourself to 2-3 targeted tool calls for this step. You are NOT re-doing the full analysis.
 
