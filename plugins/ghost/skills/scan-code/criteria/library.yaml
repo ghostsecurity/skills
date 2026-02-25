@@ -1,0 +1,201 @@
+# Library vulnerability validation criteria
+# Covers JS/TS, Python, and Go open-source libraries
+# Format: agent > vector > {candidates, cwe, severity, criteria}
+#
+# Trust model: the library consumer passes attacker-controlled data to public library
+# functions. The "remotely reachable via network protocol" criterion from backend scanning
+# is replaced by: "reachable through the library's public API when passed attacker-controlled input."
+
+injection:
+  command-injection:
+    candidates: "Files with: exec/spawn/system calls (child_process.exec, execSync, spawn, subprocess.run, subprocess.call, os.system, os.popen, exec.Command), shell command construction with variables, shell: true option, backtick execution"
+    cwe: "CWE-78"
+    severity:
+      high: "Direct OS command execution reachable through public API with caller-controlled arguments"
+      medium: "Partial command injection in constrained environment or requiring specific call pattern"
+      low: "Command injection gated behind multiple caller-controlled conditions"
+    criteria:
+      - "A public library function accepts caller-supplied input"
+      - "That input reaches an OS command execution point without sanitization"
+      - "Command uses string concatenation or shell: true instead of argument arrays"
+      - "Caller-supplied input is not validated against an allowlist of safe values"
+      - "The vulnerable function is part of the library's public API surface"
+
+  template-injection:
+    candidates: "Files with: template rendering (render, execute, compile, Template()), Jinja2/Handlebars/Mustache/EJS/Pug with dynamic content, template string construction with caller input, eval() in template expansion paths"
+    cwe: "CWE-1336"
+    severity:
+      high: "RCE through template engine exposed in library public API with caller-controlled template string"
+      medium: "Information disclosure or limited code execution through template evaluation"
+      low: "Template manipulation in sandboxed or heavily constrained evaluation context"
+    criteria:
+      - "Library function accepts a template string or expression from the caller"
+      - "Template engine evaluates the string in a context that allows code execution or object traversal"
+      - "Input is not sanitized or rendered in a sandbox that prevents side effects"
+      - "The vulnerable function is part of the library's public API surface"
+
+prototype_pollution:
+  # JS/TS only. The planner should skip these vectors for Python and Go libraries.
+  proto-pollution:
+    candidates: "Files with: recursive merge/clone/assign (merge, deepMerge, deepClone, assign, extend, defaults, mixin), bracket notation property assignment (obj[key] = val) in loops, lodash-style utilities, object path setters (_.set, setValue, setPath, set(obj, path, val))"
+    cwe: "CWE-1321"
+    severity:
+      high: "Prototype pollution reaching Object.prototype, enabling RCE or auth bypass in consuming application"
+      medium: "Prototype pollution adding properties to shared prototype, affecting application logic"
+      low: "Prototype pollution with limited exploitability or requiring unusual consumer patterns"
+    criteria:
+      - "Library function performs recursive or deep object operations (merge, clone, assign, set)"
+      - "Object keys derived from caller-supplied input are used in property assignment without filtering"
+      - "No check prevents keys named __proto__, constructor, or prototype from modifying the prototype chain"
+      - "Setting the malicious key modifies Object.prototype or a constructor's prototype"
+      - "The vulnerable function is exported and part of the library's public API surface"
+
+  property-injection:
+    candidates: "Files with: dynamic property access using caller keys (obj[userKey]), path-based property setters, configuration merge utilities, query-string-to-object parsers (qs, querystring), dot-notation path resolvers"
+    cwe: "CWE-1321"
+    severity:
+      high: "Attacker can inject properties onto shared objects, affecting consuming application security controls"
+      medium: "Property injection affecting application logic or state in consuming application"
+      low: "Property injection limited to isolated objects with no shared state impact"
+    criteria:
+      - "Library parses or processes a caller-supplied string or object into a JavaScript object using caller-controlled keys"
+      - "Key paths are not validated to prevent __proto__, constructor, or prototype segment traversal"
+      - "Resulting property assignments can land on shared prototypes rather than plain data objects"
+      - "The vulnerable function is part of the library's public API surface"
+      - "JS/TS only — this vector does not apply to Python or Go"
+
+unsafe_execution:
+  eval-injection:
+    candidates: "Files with: eval(), new Function(), vm.runInContext(), vm.runInThisContext(), vm.Script() (Node.js), exec()/eval()/compile() with user strings (Python), __import__ with caller input, importlib with dynamic paths"
+    cwe: "CWE-95"
+    severity:
+      high: "Arbitrary code execution with caller-controlled input reaching eval or equivalent"
+      medium: "Code execution in sandbox with escape potential or limited scope"
+      low: "Eval with heavily constrained or pre-validated input where exploitation is theoretical"
+    criteria:
+      - "Library calls eval(), new Function(), vm.runInContext(), or language-equivalent dynamic code execution"
+      - "The code string or expression is derived from caller-supplied input without sanitization"
+      - "No AST-based safe evaluation, sandboxing, or allowlisting of expressions prevents arbitrary execution"
+      - "The vulnerable function is part of the library's public API surface"
+
+  unsafe-deserialization:
+    candidates: "Files with: pickle.loads, marshal.loads, shelve (Python), node-serialize, serialize-javascript (JS), eval-based JSON revival (JS), gob.Decode with untrusted input (Go), any deserialization accepting raw bytes or strings from callers"
+    cwe: "CWE-502"
+    severity:
+      high: "Deserialization of attacker-controlled bytes leads to arbitrary code execution"
+      medium: "Object injection without direct code execution but enabling unintended behavior"
+      low: "Deserialization of constrained or partially validated input with limited exploit path"
+    criteria:
+      - "Library deserializes data using a format that supports arbitrary object instantiation (pickle, marshal, Java serialization)"
+      - "The serialized bytes or string come from caller-supplied input"
+      - "No type allowlisting, class filtering, or format restriction prevents unsafe object construction"
+      - "The vulnerable function is part of the library's public API surface"
+
+  unsafe-yaml:
+    candidates: "Files with: yaml.load() without Loader= (Python PyYAML), yaml.load() without schema option (js-yaml), ruamel.yaml without SafeLoader, YAML parsing of caller-supplied strings"
+    cwe: "CWE-502"
+    severity:
+      high: "YAML full-load with caller-supplied string enables RCE via !!python/object or !!js/undefined tags"
+      medium: "YAML load with limited object instantiation scope"
+      low: "YAML load on pre-validated or schema-constrained input"
+    criteria:
+      - "Library parses YAML using an unsafe loader (PyYAML yaml.load without Loader=SafeLoader, js-yaml load without restricted schema)"
+      - "The YAML string is passed in by the caller"
+      - "Unsafe loader allows !!python/object, !!python/object/apply, or equivalent tags enabling arbitrary object construction"
+      - "The vulnerable function is part of the library's public API surface"
+
+path_handling:
+  path-traversal:
+    candidates: "Files with: path.join/resolve/normalize (Node.js), os.path.join/abspath/normpath (Python), filepath.Join/Clean (Go), path construction with caller-supplied filenames, file read/write/serve using caller-supplied paths, base directory enforcement"
+    cwe: "CWE-22"
+    severity:
+      high: "Attacker can read or write arbitrary files on the filesystem through library API"
+      medium: "Path traversal constrained to specific directories or file types"
+      low: "Traversal limited to read-only access of non-sensitive files"
+    criteria:
+      - "Library function accepts a file path, filename, or directory component from the caller"
+      - "Path is used in file I/O (read, write, delete, serve) without restricting access to an expected base directory"
+      - "No normalization or base-directory prefix check prevents ../ traversal"
+      - "Python-specific: check os.path.join('/safe', caller_input) — absolute caller input overrides the base"
+      - "The vulnerable function is part of the library's public API surface"
+
+  zip-slip:
+    candidates: "Files with: archive extraction (ZipFile.extractall, tarfile.extract/extractall, adm-zip, jszip, archiver, archive/zip Go, zip.NewReader), entry path construction during extraction, handling of zip/tar/gz/jar/war files"
+    cwe: "CWE-22"
+    severity:
+      high: "Arbitrary file write outside extraction directory enabling overwrite of executables, configs, or source files"
+      medium: "File write constrained to specific extensions or non-critical locations"
+      low: "File overwrite limited to isolated temporary directories"
+    criteria:
+      - "Library extracts archive entries to the filesystem"
+      - "Entry names or paths from the archive are not sanitized to remove ../ sequences or absolute path prefixes"
+      - "Extracted files can land outside the caller-supplied output directory"
+      - "The vulnerable function is part of the library's public API surface"
+
+redos:
+  catastrophic-backtracking:
+    candidates: "Files with: regular expression literals applied to caller-supplied strings, regex patterns with nested quantifiers ((.+)+, (a|aa)+, ([a-z]+)*), overlapping alternation, complex lookaheads applied to variable-length input, user-facing validation or parsing using regex"
+    cwe: "CWE-1333"
+    severity:
+      high: "Regex applied to attacker-controlled input causes multi-second CPU spin with crafted input < 50 chars"
+      medium: "Catastrophic backtracking requires longer or more specific crafted input, moderate DoS potential"
+      low: "Backtracking possible but constrained by input length limits or minor practical impact"
+    criteria:
+      - "Library applies a regular expression to caller-supplied or attacker-reachable input"
+      - "Regex pattern contains structures vulnerable to catastrophic backtracking: nested quantifiers, overlapping alternation, polynomial-time ambiguity"
+      - "No input length limit or match timeout prevents unbounded execution"
+      - "Go repos: Go regexp uses RE2 (linear time) — mark as not applicable unless using a third-party regex engine"
+      - "The vulnerable code is part of the library's public API surface"
+
+xxe:
+  xml-external-entity:
+    candidates: "Files with: XML parser instantiation (DOMParser, SAXParser, DocumentBuilder, etree.parse, lxml.etree, xml.etree.ElementTree, encoding/xml), parser feature/property flags, DTD processing configuration, external entity resolution settings, XML parsing of caller-supplied strings or streams"
+    cwe: "CWE-611"
+    severity:
+      high: "XXE enabling arbitrary file read or SSRF through external entity resolution in library parsing API"
+      medium: "XXE limited to error-based or blind exfiltration requiring specific server response"
+      low: "XXE in constrained environment or with partial mitigation present"
+    criteria:
+      - "Library parses XML from caller-supplied input (string, stream, or file path)"
+      - "Parser does not explicitly disable DTD processing, external entity resolution, or ENTITY declarations"
+      - "External entity resolution allows reading local files or making outbound network requests"
+      - "The vulnerable function is part of the library's public API surface"
+
+request_forgery:
+  ssrf:
+    candidates: "Files with: outbound HTTP calls (fetch, axios, got, node-fetch, http.Get, requests.get, urllib.request) using caller-supplied URLs, URL construction from caller input, webhook/callback URL handling, download or proxy helper utilities"
+    cwe: "CWE-918"
+    severity:
+      high: "Library makes HTTP requests to caller-supplied URLs with no validation, enabling access to internal services or cloud metadata"
+      medium: "SSRF limited by partial URL validation or protocol restrictions"
+      low: "SSRF gated behind multiple conditions or restricted to specific URL schemes"
+    criteria:
+      - "Library function makes outbound HTTP/network requests using a URL derived from caller input"
+      - "No allowlist, blocklist, or hostname validation restricts the request destination"
+      - "Attacker can cause the library to reach internal services, cloud metadata endpoints (169.254.169.254), or localhost"
+      - "The vulnerable function is part of the library's public API surface"
+
+crypto:
+  weak-random:
+    candidates: "Files with: Math.random (JS), rand.Intn/rand.Float64 (Go math/rand), random.random/randint/choice (Python random module), time-seeded RNG, token/ID/nonce generation in library utilities, UUID v1 or timestamp-based ID generation"
+    cwe: "CWE-338"
+    severity:
+      high: "Predictable random values used for security tokens, signing keys, or IDs exposed through library API"
+      medium: "Weak random in internal operations that influence security outcomes for consuming application"
+      low: "Weak random in non-security-sensitive contexts (UI jitter, load balancing, non-secret IDs)"
+    criteria:
+      - "Library uses a non-cryptographic random source for values it exposes to consumers or uses in security-relevant operations"
+      - "Generated values (tokens, IDs, nonces, keys) are predictable given knowledge of seed or algorithm state"
+      - "The function is part of the library's public API surface or produces values used in security decisions"
+
+  weak-hashing:
+    candidates: "Files with: MD5 (hashlib.md5, crypto.createHash('md5'), md5()), SHA1 (hashlib.sha1, crypto.createHash('sha1')), used for password hashing, HMAC construction, integrity verification, digital signatures, security-relevant cache keys"
+    cwe: "CWE-328"
+    severity:
+      high: "MD5 or SHA1 used for password hashing, HMAC signing, or integrity verification with collision/preimage implications"
+      medium: "Weak hash used for security-relevant purpose without direct password cracking risk"
+      low: "Weak hash used for non-security purposes (checksums, non-security cache keys)"
+    criteria:
+      - "Library uses MD5 or SHA1 for a security-sensitive purpose (integrity verification, HMAC, password storage, digital signatures)"
+      - "Weak algorithm provides insufficient collision or preimage resistance for the intended use"
+      - "The vulnerable function is part of the library's public API surface"

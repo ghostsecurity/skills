@@ -1,4 +1,5 @@
-# Auto-generated — do not edit. Run: bash criteria/generate-index.sh
+# Auto-generated for backend/frontend/mobile. Library section added manually.
+# To regenerate backend/frontend/mobile sections: bash criteria/generate-index.sh
 backend:
   injection:
     - command-injection
@@ -84,6 +85,30 @@ frontend:
     - missing-origin-validation
   prototype_pollution:
     - prototype-manipulation
+library:
+  injection:
+    - command-injection
+    - template-injection
+  prototype_pollution:
+    - proto-pollution
+    - property-injection
+  unsafe_execution:
+    - eval-injection
+    - unsafe-deserialization
+    - unsafe-yaml
+  path_handling:
+    - path-traversal
+    - zip-slip
+  redos:
+    - catastrophic-backtracking
+  xxe:
+    - xml-external-entity
+  request_forgery:
+    - ssrf
+  crypto:
+    - weak-random
+    - weak-hashing
+
 mobile:
   insecure_data_storage:
     - unencrypted-local

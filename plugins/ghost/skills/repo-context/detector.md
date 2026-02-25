@@ -114,6 +114,35 @@ For SECURITY SCANNING purposes, if you find BOTH backend AND frontend technology
 
 ---
 
+## Library Project Guidelines
+
+Classify a project as `library` when it is a reusable package, SDK, or module — not a runnable application.
+
+**Primary signals — project is a library if:**
+- Package manifest is configured for publishing/distribution, not for running an application
+- No application entry point: no HTTP server startup, no CLI main(), no route definitions
+- Code structure centers on a public API surface (`index.ts`/`index.js` re-exporting modules, `__init__.py` importing from submodules)
+
+**Distinguishing from backend:**
+- Has `package.json` with `main`/`exports`/`types` but NO server framework (express, fastify, koa, nestjs, hapi) → library
+- Has `pyproject.toml` with `[build-system]` but NO web framework (flask, django, fastapi, starlette) and NO `[project.scripts]` starting a server → library
+- Has `go.mod` but NO `main` package (no `cmd/` with `main.go`, no `func main()` at root) → library
+
+**Distinguishing from CLI:**
+- Has `package.json` with NO `bin` field → library (not CLI)
+- Has `pyproject.toml` with NO `[project.scripts]` → library (not CLI)
+- Has `go.mod` with no `main` package → library (not CLI)
+
+**Distinguishing from frontend:**
+- Has `package.json` with NO frontend framework (react, vue, angular, svelte, next) and NO UI build tooling (webpack, vite with HTML entry) → library
+
+**Common library patterns:**
+- npm packages: `package.json` with `main`, `exports`, or `types` fields; `src/index.ts` exporting functions/classes
+- Python packages: `pyproject.toml` or `setup.py`/`setup.cfg`; `src/<name>/__init__.py` or `<name>/__init__.py`
+- Go modules: `go.mod`; exported functions in `.go` files at package root; no `main` package
+
+---
+
 ## CLI Tool Guidelines
 
 **IMPORTANT**: Only report CLI tools as separate projects if they are INDEPENDENTLY DEPLOYABLE standalone tools. ("Independently deployable" means independently scannable for security purposes, not necessarily deployed as separate artifacts.)

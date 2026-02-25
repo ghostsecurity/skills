@@ -33,7 +33,7 @@ Parse the line:
 
 Extract:
 - **base_path**: project base path (e.g., ".", "api", "frontend/src")
-- **type**: project type (backend, frontend, mobile)
+- **type**: project type (backend, frontend, mobile, library)
 - **agent**: agent name (e.g., "injection")
 - **vector**: vector name (e.g., "sql-injection")
 - **candidate_file**: the specific file to analyze (relative to repo root)
@@ -46,21 +46,25 @@ Read `<skill_dir>/criteria/<type>.yaml` — look up `<agent>` → `<vector>`. Ex
 
 Thoroughly explore the code to understand the vulnerability surface:
 
-1. **Read the candidate file** in full. Understand its role in the application.
+1. **Read the candidate file** in full. Understand its role in the application (or library).
 2. **Trace data flows**. For each potential vulnerability site:
-   - Where does user input enter? (request params, body, headers, URL, etc.)
+   - **Application projects**: Where does user input enter? (request params, body, headers, URL, etc.)
+   - **Library projects**: Where does caller-supplied data enter? (function parameters, options objects, configuration values passed by the consumer)
    - How does the data flow through the code? (variable assignments, function calls, transformations)
-   - Where does it reach a dangerous sink? (SQL query, exec call, DOM render, etc.)
+   - Where does it reach a dangerous sink? (SQL query, exec call, DOM render, file I/O, prototype assignment, etc.)
 3. **Check for mitigations**. Look for:
    - Input validation or sanitization
    - Parameterized queries or safe APIs
-   - Framework-level protections (CSRF tokens, ORM, template auto-escaping)
-   - Middleware or decorators that apply protections
+   - **Application projects**: Framework-level protections (CSRF tokens, ORM, template auto-escaping), middleware or decorators
+   - **Library projects**: Input type checks, key filtering (e.g., blocking `__proto__`), safe defaults, sandboxing, path normalization within the library code itself. Libraries do not have framework middleware — the mitigation must be in the library's own code.
 4. **Follow imports and dependencies**. Read related files (2-3 max) if needed to understand:
    - Helper functions that process the data
-   - Middleware that may validate/sanitize input
+   - Middleware that may validate/sanitize input (application projects)
+   - Internal validation utilities (library projects)
    - Configuration that enables/disables protections
-5. **Evaluate reachability**. Is the vulnerable code path actually reachable from external input?
+5. **Evaluate reachability**.
+   - **Application projects**: Is the vulnerable code path actually reachable from external input (HTTP requests, API calls, etc.)?
+   - **Library projects**: Is the vulnerable function exported as part of the public API? Can a consumer pass attacker-controlled data to it through normal usage? A function is reachable if it is exported (directly or transitively) and accepts caller-supplied data that flows to a sink.
 
 **Efficiency rules:**
 - Read at most 5 files total (candidate + up to 4 related files)
@@ -81,7 +85,7 @@ A finding is genuine ONLY if **ALL** validation criteria from the vector's crite
 - Theoretical vulnerabilities without concrete code evidence
 - Vulnerabilities mitigated by existing protections
 - Best-practice recommendations that aren't actual vulnerabilities
-- Findings where the code path is not reachable from external input
+- Findings where the code path is not reachable from external input (application projects) or not reachable from the public API surface (library projects)
 - Findings in test files, fixtures, or example code
 
 If a vulnerability is found, read the template at `<skill_dir>/prompts/template-finding.md`, then write the finding file to `<scan_dir>/findings/`.
