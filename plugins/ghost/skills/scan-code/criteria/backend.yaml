@@ -108,6 +108,7 @@ authz:
       - "Code accesses a specific resource instance (database record, file, object) using an identifier"
       - "The identifier determining which resource instance is accessed comes from user-controlled input"
       - "Code does not verify the authenticated user has authorization to access that specific resource instance"
+      - "The endpoint is not a dedicated administrative or management endpoint, and/or the required role or scope is not an administrative-level privilege that inherently grants access to resources across all users or tenants"
       - "Requires authentication (not a public access path)"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 
@@ -136,6 +137,7 @@ authz:
       - "User can elevate their privileges through direct field modification or API manipulation"
       - "Authorization check does not prevent users from granting themselves higher privileges"
       - "Role or permission modification endpoints lack proper access controls preventing self-elevation"
+      - "The assignable roles or permissions include privilege levels higher than what the authenticated caller already holds"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 
   mass-assignment:
@@ -149,7 +151,8 @@ authz:
       - "User input is directly bound to model/object properties without explicit field filtering or allowlisting"
       - "Privileged or internal fields (role, isAdmin, permissions, status, etc.) can be modified by including them in request"
       - "No allowlist, denylist, or field-level protection prevents modification of sensitive attributes"
-      - "Model binding or auto-mapping accepts all fields from request without validation of which fields should be user-modifiable"
+      - "Request binding is not restricted by a typed request object, view model, form object, or explicit per-field parameter extraction that structurally limits which fields are accepted — instead, the entire request payload is bound directly to the data model or entity"
+      - "The endpoint is not a dedicated administrative or management endpoint, and/or the required role or scope is not an administrative-level privilege where setting privileged fields is expected functionality"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 
 authn:
@@ -157,8 +160,8 @@ authn:
     candidates: "Authentication verification functions (verifyCredentials, checkPassword, validateToken), login handlers, credential comparison logic, authentication bypass conditions, early returns in auth checks"
     criteria:
       - "Authentication mechanism exists and is intended to verify user credentials"
-      - "Logic flaw allows bypassing authentication through manipulation (empty password check, logic errors, timing issues)"
-      - "The vulnerability is in the authentication verification logic itself, not the absence of authentication"
+      - "Logic flaw allows bypassing authentication through manipulation (empty password check, logic errors, timing issues, token forgery, default credentials)"
+      - "The vulnerability is in the authentication verification logic itself — verifying who the user is — not in authorization logic that controls what an already-authenticated user can do"
       - "Attacker can gain authenticated access without valid credentials due to implementation flaws"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 
@@ -166,7 +169,7 @@ authn:
     candidates: "Password validation functions (validatePassword, checkPasswordStrength), user registration/signup handlers, password setting/update endpoints, password policy configuration, password requirement checks"
     criteria:
       - "System has password creation or update functionality for user accounts"
-      - "Password policy does not enforce sufficient complexity (minimum length, character variety, common password checks)"
+      - "Password policy is fundamentally weak — lacking minimum length enforcement, or requiring fewer than three character variety rules, or accepting known common/breached passwords"
       - "Weak passwords are accepted and stored, making accounts vulnerable to guessing or brute force"
       - "The vulnerability is in password requirements, not in how passwords are verified or stored cryptographically"
 
@@ -175,6 +178,9 @@ authn:
     criteria:
       - "Accounts or operations are high-value, privileged, or handle sensitive data/transactions"
       - "Authentication relies solely on a single factor (typically password or API key)"
+      - "The operation requires an already-authenticated user session, not an account recovery or credential reset flow (forgot password, account unlock, initial registration)"
+      - "The endpoint is accessed by human users through interactive sessions, not by service-to-service or machine-to-machine integrations using OAuth2 client credentials, API tokens, or similar non-interactive authentication"
+      - "The operation modifies account credentials, authorization, or security-sensitive configuration, not merely reads or displays data"
       - "No second authentication factor is required, available, or enforced (TOTP, SMS, hardware token, biometric)"
       - "The vulnerability is the absence of multi-factor authentication, not issues with existing MFA implementation"
 
@@ -216,7 +222,8 @@ authn:
     criteria:
       - "Endpoint modifies system state or accesses protected data without any authentication check"
       - "No authentication middleware, decorator, or guard is present in the request handling path"
-      - "Endpoint is not part of an authentication establishment flow (login, OAuth callback, registration, password reset)"
+      - "Endpoint serves user-specific or tenant-specific data or performs state changes that require caller identity, not public reference data or pre-authentication configuration"
+      - "The endpoint returns different data or permits different actions depending on the authenticated caller's identity or permissions"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 
 crypto:
@@ -250,8 +257,9 @@ crypto:
     candidates: "Database write operations storing sensitive data (INSERT, UPDATE, save, create), file writes with PII/secrets (writeFile, os.Create, File.Write), sensitive field definitions in models/schemas, storage configuration for sensitive tables/collections"
     criteria:
       - "Code stores sensitive data persistently (database, filesystem, object storage, cache)"
-      - "Sensitive data includes PII, credentials, secrets, financial data, or confidential information"
-      - "Data is stored in plaintext without encryption protection at the storage layer"
+      - "The specific data being stored is concretely identifiable as highly sensitive (credentials, encryption keys, payment card numbers, SSNs, health records) rather than general application data whose sensitivity is assumed or unclear"
+      - "Data is stored in plaintext without encryption protection at the application layer"
+      - "The codebase already applies application-layer encryption to similar or less sensitive data elsewhere, indicating an established pattern that is inconsistently applied here"
       - "The vulnerability is the absence of encryption for stored data, not weak encryption algorithms or key management issues"
 
   improper-cert-validation:
@@ -275,8 +283,9 @@ data_exposure:
     candidates: "Error message construction (Error, fmt.Errorf, throw new Error), error responses to clients, exception handling that includes sensitive context, error formatting with variables"
     criteria:
       - "Code generates error messages that are returned to clients or users"
-      - "Error messages contain sensitive system information (file paths, database details, internal IPs, SQL queries, implementation details)"
+      - "Error messages contain sensitive system information (file paths, database details, internal IPs, SQL queries, or other implementation details not already publicly available through API specs, documentation, or standard protocol definitions)"
       - "Error details aid attackers in understanding system internals or planning attacks"
+      - "The endpoint is not a dedicated administrative or management endpoint, and/or the required role or scope is not an administrative-level privilege where detailed error context is expected operational behavior"
       - "The vulnerability is in error message content, not in the presence of stack traces or error handling logic itself"
 
   stack-trace-prod:
@@ -290,16 +299,16 @@ data_exposure:
   debug-endpoints:
     candidates: "Route definitions for debug/diagnostic endpoints (/debug, /status, /health, /metrics, /env), development-only route registrations, conditional endpoint enabling, administrative diagnostic handlers"
     criteria:
-      - "Application has debug, diagnostic, or development endpoints that expose system information"
+      - "Application has debug, diagnostic, or development endpoints that expose system information beyond basic healthcheck data"
       - "Endpoints are accessible in production without proper authentication or are not disabled for production"
       - "Endpoints are accessible remotely over network protocols (HTTP/S, gRPC, WebSocket) without requiring server access"
-      - "Endpoints reveal configuration, environment variables, internal state, metrics, or diagnostic data"
+      - "Endpoints reveal configuration, environment variables, internal state, metrics, or diagnostic data beyond basic healthcheck data"
       - "The vulnerability is the presence of debug endpoints in production, not information disclosure through normal endpoints"
 
   info-disclosure:
     candidates: "HTTP response header configuration (Server, X-Powered-By, X-AspNet-Version), error page templates, framework default responses, response header middleware, banner information"
     criteria:
-      - "Application exposes software versions, framework details, or technology stack information"
+      - "Application exposes specific software versions, framework details, or technology stack information"
       - "Information is disclosed through HTTP headers, default pages, error pages, or response metadata"
       - "Disclosed information helps attackers identify specific vulnerabilities or attack vectors for the technology stack"
       - "The vulnerability is about technology/version fingerprinting, not disclosure of application data or debug information"
@@ -308,8 +317,10 @@ data_exposure:
     candidates: "Endpoints that check resource/user existence (user lookup, email check, account verification), error messages for found vs not-found vs unauthorized, timing differences in authentication responses, registration/login feedback messages"
     criteria:
       - "Endpoint allows checking whether specific resources, users, accounts, or identifiers exist"
+      - "The existence information is disclosed as a side effect of the endpoint's operation, not as the endpoint's intended and designed functionality (e.g., user search, directory lookup, availability checks, autocomplete, profile discovery endpoints are designed to reveal existence)"
       - "System provides different responses, error messages, timing differences, or status codes that reveal existence vs non-existence"
       - "Attackers can enumerate valid usernames, emails, account IDs, resource identifiers through repeated probing"
+      - "The endpoint is not a dedicated administrative or management endpoint, and/or the required role or scope is not an administrative-level privilege where knowing resource existence is expected operational behavior"
       - "The vulnerability is about existence disclosure through any observable difference, not about accessing the actual data or resources"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 
@@ -360,6 +371,7 @@ api_security:
       - "API endpoint returns database entities or complete data objects in responses"
       - "Response includes unnecessary fields: internal metadata (IDs, timestamps, system fields), sensitive data (PII, passwords, tokens), or attributes not needed by the API consumer"
       - "No explicit field filtering, projection, or DTO mapping limits response data to necessary fields only"
+      - "The endpoint is not a dedicated administrative or management endpoint, and/or the required role or scope is not an administrative-level privilege where returning full data objects is expected functionality"
       - "The vulnerability is about over-exposure of data fields in API design (returning more than needed), not about authorization failures (wrong user accessing data)"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 

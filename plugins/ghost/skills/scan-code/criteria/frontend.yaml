@@ -69,6 +69,7 @@ authn:
       - "Authentication tokens or session identifiers are passed in URL parameters"
       - "Tokens can leak through browser history, referrer headers, or logs"
       - "Token is not transmitted via secure headers or POST body"
+      - "The application controls how the token is transmitted and could use a secure alternative — the URL exposure is not mandated by a third-party SDK or OAuth/OIDC protocol flow"
 
 authz:
   client-authz-bypass:
@@ -97,6 +98,7 @@ data_exposure:
       - "Sensitive data (API keys, tokens, passwords, secrets, private keys) is hardcoded in frontend source code"
       - "Data is embedded as string literals, constants, or configuration values in JavaScript/TypeScript files"
       - "Secrets are visible in browser DevTools, source code inspection, or extracted from bundles"
+      - "The exposed data is a production secret, not a development/test placeholder or demo value behind a feature flag or environment-gated conditional"
       - "The vulnerability is hardcoded secrets in code, not secrets in storage (localStorage) or logs (console)"
 
   console-sensitive:

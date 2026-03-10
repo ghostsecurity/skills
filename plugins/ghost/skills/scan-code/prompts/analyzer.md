@@ -65,6 +65,7 @@ Thoroughly explore the code to understand the vulnerability surface:
 5. **Evaluate reachability**.
    - **Application projects**: Is the vulnerable code path actually reachable from external input (HTTP requests, API calls, etc.)?
    - **Library projects**: Is the vulnerable function exported as part of the public API? Can a consumer pass attacker-controlled data to it through normal usage? A function is reachable if it is exported (directly or transitively) and accepts caller-supplied data that flows to a sink.
+6. **Call chain handling**: If multiple functions in the same call chain have the vulnerability (e.g., a caller and the helper it calls), report only the function where the fix would be applied — typically the deepest point for data-flow issues (injection, encoding), or the entry point / controller for access-control issues (authentication, authorization, MFA).
 
 **Efficiency rules:**
 - Read at most 5 files total (candidate + up to 4 related files)
