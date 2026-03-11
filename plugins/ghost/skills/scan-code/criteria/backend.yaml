@@ -106,9 +106,10 @@ authz:
       low: "Access to semi-public or low-sensitivity resources"
     criteria:
       - "Code accesses a specific resource instance (database record, file, object) using an identifier"
-      - "The identifier determining which resource instance is accessed comes from user-controlled input"
+      - "The identifier determining which resource instance is accessed comes from user-controlled input (request params, path params, headers, body) — not derived server-side from the authenticated session, JWT claims, or token lookup"
       - "Code does not verify the authenticated user has authorization to access that specific resource instance"
       - "The endpoint is not a dedicated administrative or management endpoint, and/or the required role or scope is not an administrative-level privilege that inherently grants access to resources across all users or tenants"
+      - "The accessed resource is owned by or private to a specific user, account, or tenant — not shared reference data, catalog entries, plan documents, fee schedules, terms/conditions, or other resources that are identical regardless of which user requests them"
       - "Requires authentication (not a public access path)"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 
@@ -183,6 +184,7 @@ authn:
       - "The operation modifies account credentials, authorization, or security-sensitive configuration, not merely reads or displays data"
       - "No second authentication factor is required, available, or enforced (TOTP, SMS, hardware token, biometric)"
       - "The vulnerability is the absence of multi-factor authentication, not issues with existing MFA implementation"
+      - "The operation is performed by the user on their own account or session, not by an administrator acting on other users' accounts through an already-privileged management endpoint"
 
   insecure-session:
     candidates: "Session token generation (generateSessionId, createSession, uuid, random), session creation/destruction logic, logout handlers, session timeout configuration, session storage operations"
@@ -276,6 +278,7 @@ data_exposure:
     criteria:
       - "Code writes log messages to application logs (files, stdout, logging service)"
       - "Log messages include sensitive data (passwords, tokens, API keys, secrets, PII, credit cards, etc.)"
+      - "The data logged includes more sensitive items than solely usernames, user IDs, and email addresses"
       - "Sensitive data is logged in plaintext without redaction, masking, or filtering"
       - "The vulnerability is in what gets logged, not in log storage security or log access controls"
 
@@ -340,7 +343,7 @@ api_security:
     criteria:
       - "API endpoint can be called repeatedly by users or clients"
       - "No rate limiting, throttling, or request frequency restrictions are implemented"
-      - "Endpoint can be abused through automated high-volume requests without hindrance"
+      - "The endpoint performs an operation with disproportionate or amplified resource consumption per request — such as unbounded queries without enforced pagination limits, fan-out to multiple downstream services, batch/bulk operations, expensive computation, or large resource allocation — beyond the baseline cost of standard single-record CRUD operations"
       - "Abuse enables denial of service through high request volumes, data scraping, inventory manipulation, or competitive advantage through mass queries"
       - "Endpoint is NOT a login or authentication endpoint (those are evaluated by other vectors)"
       - "The vulnerability is the complete absence of rate limiting, not insufficient limits or bypassable limits"
@@ -375,14 +378,6 @@ api_security:
       - "The vulnerability is about over-exposure of data fields in API design (returning more than needed), not about authorization failures (wrong user accessing data)"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 
-  lack-resource-rate-limit:
-    candidates: "Expensive operations (large queries, file uploads, bulk operations, report generation, search endpoints), resource consumption tracking, per-operation quotas, cost-based throttling"
-    criteria:
-      - "Endpoint performs resource-intensive operations (large queries, file processing, bulk operations, complex computations)"
-      - "No per-user quotas, resource consumption limits, or operation-specific throttling exist"
-      - "Users can repeatedly invoke expensive operations causing resource exhaustion or cost escalation"
-      - "The vulnerability is about resource-intensive operations specifically, not general endpoint rate limiting"
-      - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 
 serialization:
   unsafe-deserialization:

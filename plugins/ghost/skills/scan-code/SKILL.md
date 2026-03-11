@@ -5,7 +5,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 argument-hint: "[depth=quick]"
 license: apache-2.0
 metadata:
-  version: 1.1.0
+  version: 1.1.1
 ---
 
 # Find Issues
