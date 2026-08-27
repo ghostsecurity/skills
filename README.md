@@ -42,6 +42,7 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 | `ghost-report` | Combined security report across all scan results |
 | `ghost-validate` | Dynamic validation of findings against a live application (DAST) |
 | `ghost-proxy` | HTTP proxy for the `ghost-validate` skill |
+| `ghost-exo` | Build, improve, and debug workflows on the exo agent orchestration platform |
 
 ### ghost-repo-context
 <div align="center">

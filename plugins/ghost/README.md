@@ -45,6 +45,14 @@ Full documentation, tutorials, and video usage guides are available at [ghostsec
    /ghost-validate      # Dynamic/live validation against a live application (DAST)
    ```
 
+## Exo Workflows
+
+`ghost-exo` drives [exo](https://ghostsecurity.ai), an agent orchestration platform. Connect your exo MCP server, then:
+
+```
+/ghost-exo           # Turn an idea into a workflow, iterate on an existing one, or diagnose a failed run
+```
+
 ## Contributing
 
 Contributions are welcome! Please open a pull request or issue on this repository.

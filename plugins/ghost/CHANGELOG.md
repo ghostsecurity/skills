@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 - 2026-08-26
+
+Adds the `ghost-exo` skill for the exo workflow lifecycle.
+
+### Skills
+
+- **ghost-exo** - One front door for building, improving, and debugging workflows on [exo](https://ghostsecurity.ai), an agent orchestration platform. Routes a request to one of three intents. BUILD takes a rough idea through interrogation, assessment, and resource creation in dependency order. IMPROVE runs the observe-and-iterate loop over recent runs behind two approval gates. DEBUG diagnoses a single failed run by walking the dependency graph of everything it touched. Bundles `scripts/exo-skill.py`, which moves skill bundles over REST so file contents never serialize as tool-call arguments. Harness-neutral: the bundle names no harness, and on first use it registers the exo MCP server for whichever harness is running it.
+
 ## 1.1.0 - 2026-02-17
 
 Plugin naming convention and compliance/passing scores according to tessl best practices. Instead of **plugin:skill-name** it's **plugin-skill-name**. When installed as a plugin in Claude Code, it will be invocable by **ghost-skill-name** as well as **plugin:skill-name**

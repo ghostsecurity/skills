@@ -1,0 +1,4 @@
+interface:
+  display_name: "Exo Workflow Lifecycle"
+  short_description: "Build, improve, and debug exo workflows"
+  default_prompt: "Use $ghost-exo to build, improve, or debug an exo workflow."
