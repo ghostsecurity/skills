@@ -26,7 +26,7 @@ Call `whoami` on the chosen server. It confirms the connection and returns the w
 
 ## Always read first
 
-Read `resources/common.md`. It holds the shared substrate every intent uses: the run-walking read primitives, the DTO discovery discipline, the resource write primitives, the unprobeable nodes, and the note on why the improve intent reads the debug recipe inline rather than invoking it.
+Read `resources/common.md`. It holds the shared substrate every intent uses: the run-walking read primitives, the worker capability rules that decide which tools a skill may use and how it declares them, the DTO discovery discipline, the resource write primitives, the unprobeable nodes, and the note on why the improve intent reads the debug recipe inline rather than invoking it.
 
 ## Classify the intent
 

@@ -10,7 +10,7 @@ Two questions decide whether work belongs with an agent. The first is whether th
 
 | Criterion | What it measures |
 |---|---|
-| **Reachable** | How much of what the work needs to read and to change is available through the agent's tools rather than the physical world or undocumented knowledge. This is the gate. If it fails, nothing else matters. |
+| **Reachable** | How much of what the work needs to read and to change is available through the agent's tools rather than the physical world or undocumented knowledge. On exo, a tool counts only when a worker carries it: it is in `base_tools`, or a pool provides its capability, and one pool provides everything the workflow's steps need together. This is the gate. If it fails, nothing else matters. |
 | **Repeatable** | How closely the work follows a pattern the model has seen many times. Patterned, conventional work is in-distribution and is what models are reliably good at. |
 | **Valuable** | How worth doing it is to offload the work, counting both how often it recurs and how much expensive human time it currently burns. |
 | **Verifiable** | How cheaply and objectively the result can be checked once produced, whether by a test, a tool, a quick diff, or a human reviewer downstream. This is the linchpin, because a probabilistic agent needs a check to iterate against and to be trusted. |

@@ -23,20 +23,34 @@ Each node can fail and surface as a run-level error. Each has a probe that says 
 | Credential | secret material, OAuth expiry, scope | `get_resource('credential', id)`, and `query_observability` for matching credential_uses rows in the window |
 | Agent | binary version, prompt baseline | No MCP surface. There is no agent resource type, and run.agent_id is a free-form string. Infer health from whether the events show any agent activity at all |
 | Model / LLM provider | provider, auth, rate limits, 5xx | `get_resource('model', id)` for the row, and error-event payloads in `get_run_events` for runtime failures |
+| Worker capabilities | which command line tools the run's worker carries, and whether any pool can serve what the run requires | The run's `required_capabilities` from `get_run`, against `list_worker_capabilities`. Then the `requires` of each bound skill via `get_resource('skill', id)` and the environment's `required_capabilities` |
 | Runner identity | mTLS cert serial/CN, TTL, renewal | No MCP surface. Operator-side only. Capture run.runner_id for the operator |
 | Runner lifecycle | heartbeats, WS connect/disconnect, OOM, restarts, slot assignment | No MCP surface. Runner host and gateway logs only |
 | Cert revocation | revoked serials | No MCP surface. cert_revocations is an operator-side collection with no read path |
 | Credential proxy | DNS allowlist hits, MITM token swap, upstream errors | `query_observability` filtered to the run_id over proxy logs |
-| Gateway dispatch | run-queue assignment, runner-pool selection across step boundaries | `query_observability` filtered to the run_id and step transitions |
+| Gateway dispatch | run-queue assignment, worker selection by required capability, the pin that keeps later steps on the first step's worker | `query_observability` filtered to the run_id and step transitions |
 | Workflow event tape | step lifecycle, status, errors | `summarize_run_events(run_id)` then `get_run_events(run_id, event_types=[...])` |
 | Tool surface | per-tool args/results, exit codes | `get_run_events(run_id, event_types=['tool_use','error'])` |
 | Approvals | pending and resolved approval gates | `list_approval_requests` filtered by run_id |
 
 Nodes marked No MCP surface cannot be probed from here. Record their pivot IDs in the report and mark them unprobed rather than guessing.
 
+### Worker capability failures
+
+A capability problem shows up in one of four ways. The model is in the Worker capabilities section of `resources/common.md`.
+
+| Symptom | Cause | Where to look |
+|---|---|---|
+| The trigger is refused with `no connected worker provides the capabilities this run requires`, and there is no run to walk | No single pool can serve the union of what the workflow requires | The error names what is missing. Check `provided_by` for each entry, and whether a pool that lists it sits at `replicas` 0. Diagnose from the workflow's tasks, environments, and skills, since no run exists |
+| A run failed after sitting queued, with `no worker provides the capabilities this task requires` | The pool that served it lost its workers, or its image was rebuilt without the add-on, after the run was queued | `pools` in `list_worker_capabilities` against the run's `required_capabilities` |
+| A workflow child failed with `the worker this task is bound to no longer provides the capabilities it requires` | Children are pinned to the worker the first step landed on, and that worker's image changed mid-workflow | The child's `runner_id` and the pool it belongs to |
+| A step ran and a command was not found, exit code 127 | The skill runs a tool it never declared, so the run landed on a worker without it. `required_capabilities` is empty or does not cover the tool | The tool call in `get_run_events`, against `base_tools` and the skill's `requires` |
+
+The fix for the fourth is a skill content change: declare the capability under `metadata.requires`. The first three need a platform admin to change a pool, which has no MCP surface, so name the capability and the pool and stop there. Where `addons_available` is false, as on the demo edition, no pool can change, and the only fix is a skill that uses what the workers already carry.
+
 ## Procedure
 
-0. Resolve to a run_id if only a workflow name was given. `list_resources('workflow')`, exact-then-substring match. Multiple matches means list candidates and stop. Then `list_runs(workflow_id, limit=1, status='failed')`, falling back to the most recent of any status, and narrate the fallback.
+0. Resolve to a run_id if only a workflow name was given. `list_resources('workflow')`, exact-then-substring match. Multiple matches means list candidates and stop. Then `list_runs(workflow_id, limit=1, status='failed')`, falling back to the most recent of any status, and narrate the fallback. If the symptom is a trigger that was refused, there is no run. Go straight to Worker capability failures above and diagnose from the workflow's resources.
 
 1. `get_run(run_id)`. Capture every pivot ID. If the status is still active, stop and say so.
 
@@ -65,5 +79,6 @@ Nodes marked No MCP surface cannot be probed from here. Record their pivot IDs i
 - The bound environment at run time may differ from the workflow's current environment if it was rebound since. Cite the run's own IDs, not the workflow's current state.
 - Child runs are first-class. Each has its own runner, environment, task, agent, and model. Recurse rather than treating them as opaque.
 - If a node's probe shows it never received work, meaning zero tool calls, zero tokens, or sub-100ms on a step that should take seconds, the failure is upstream. Walk what was supposed to provision it before what it contains.
-- Different step indices may bind to different environments and runner pools. Compare per-step environment_id when failures cluster on step boundaries.
+- Different step indices may bind to different environments, but every step of one workflow run executes on the same worker, the one its first step landed on. Compare per-step environment_id when failures cluster on step boundaries, and check that one pool provides what every step's environment requires.
+- A refused trigger leaves no run. When the user reports that a workflow will not start and `list_runs` shows nothing new, suspect worker capabilities before anything else.
 - Probed-and-clean and did-not-probe are different states. Do not conflate them in the report.

@@ -31,7 +31,19 @@ For each step, in order:
 - Credentials: {{CREDS}}
 - Env vars: {{VARS}}
 - Tools: {{TOOLS}}
+- Command line tools and the capability each needs: {{`tool` from base_tools | `tool` requires `capability`}}
 - Judgment versus deterministic split: {{what the LLM does versus what a script does}}
+
+## Worker requirements
+
+Every step runs on the worker the first step lands on, so one pool has to provide all of this.
+
+- Capabilities the workflow requires, across all steps: {{CAPABILITIES or none}}
+- Pool that provides all of them: {{POOL or none yet}}
+- Add-on suggested in a skill bundle (`exo-addon.json`): {{CAPABILITY and tool versions, or none}}
+- Needed from a platform admin before the first run: {{nothing | create the suggested add-on | add CAPABILITY to a pool | give workers to POOL}}
+
+If the last line is not "nothing", the build ends at built_no_run and the first run waits for that change.
 
 ## Metric chain
 

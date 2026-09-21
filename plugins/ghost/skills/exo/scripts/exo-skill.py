@@ -32,6 +32,12 @@ create can carry binary files because the import route is multipart.
 The import route upserts by name, so create refuses an existing name
 unless --force is passed.
 
+After create and upload, the new version is read back and three things
+are printed: the worker capabilities it requires (`requires` in SKILL.md),
+any import warnings, and the worker add-on its exo-addon.json suggests.
+A warning means the import read something it could not use, such as a
+requires entry that is not a capability name.
+
 SKILL may be a skill ID or a skill name. When a name is supplied and
 multiple skills match by case-insensitive exact-or-substring rules, the
 candidates are printed and the command exits non-zero so the caller can
@@ -215,6 +221,34 @@ def get_version(skill_id: str, version_id: str) -> dict:
     return match
 
 
+def report_version(skill_id: str, version_id: str | None) -> None:
+    """Print what the import recorded for a version: the capabilities it
+    requires, anything it read but could not use, and the worker add-on its
+    exo-addon.json suggests. The version is already stored, so a version
+    missing from the list is reported and never fatal.
+    """
+    if not version_id:
+        return
+    versions = request("GET", f"/skills/{skill_id}/versions").get("versions", [])
+    version = next((v for v in versions if v.get("id") == version_id), None)
+    if version is None:
+        print(f"note: version {version_id} not listed yet; requires and warnings not shown", file=sys.stderr)
+        return
+
+    requires = version.get("requires") or []
+    print(f"requires: {', '.join(requires) if requires else 'none'}")
+    for warning in version.get("warnings") or []:
+        print(f"warning: {warning}")
+    suggestion = version.get("addon_suggestion")
+    if suggestion:
+        label = suggestion.get("capability") or suggestion.get("display_name") or "unnamed"
+        print(
+            f"addon_suggestion: {label}. Nothing is installed until a platform "
+            "admin creates the add-on and adds it to a worker pool."
+        )
+        print(json.dumps(suggestion, indent=2))
+
+
 def _collect_folder_files(folder: pathlib.Path) -> list[tuple]:
     """Walk a folder into (rel_path, content_bytes, content_type) tuples.
 
@@ -284,6 +318,7 @@ def cmd_create(args: argparse.Namespace) -> None:
     print(f"created skill {skill_id} ('{resp.get('name', name)}') with {len(file_parts)} file(s)")
     if version_id:
         print(f"active version {version_id}")
+    report_version(skill_id, version_id)
 
     meta = {
         "skill_id": skill_id,
@@ -403,6 +438,7 @@ def cmd_upload(args: argparse.Namespace) -> None:
             body={"version_id": new_version_id},
         )
         print(f"activated version {new_version_id}")
+    report_version(skill_id, new_version_id)
 
     # Refresh local meta so a subsequent edit + upload chains correctly.
     if meta_path.is_file():

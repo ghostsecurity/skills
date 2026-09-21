@@ -6,7 +6,7 @@ The shared substrate, namely the read and write primitives and the DTO discovery
 
 ## Phase 0: Orient
 
-Before talking to the user, call `whoami` and list the workspace resources: workflows, skills, environments, models, credentials, and tools. Hold a reuse catalog and a set of candidate template workflows. When a structurally similar workflow exists, you may offer to clone and adapt it as a skeleton, but only from Stage 3 onward, never to seed the outcome.
+Before talking to the user, call `whoami` and list the workspace resources: workflows, skills, environments, models, credentials, and tools. Call `list_worker_capabilities` too, and hold what the workers can run: the `base_tools`, what each pool provides, and whether `addons_available` is true. Hold a reuse catalog and a set of candidate template workflows. When a structurally similar workflow exists, you may offer to clone and adapt it as a skeleton, but only from Stage 3 onward, never to seed the outcome.
 
 ## Phase 1: Interrogate (research)
 
@@ -37,6 +37,7 @@ Every question in this phase goes through the harness's structured question tool
 10. The judgment-versus-deterministic split per step, applying the remove-thought lens, which decides how much is scripted skill versus prompt.
 11. The skill per step, resolved interactively: reuse an existing skill by skill_id, or author a new one with `scripts/exo-skill.py --profile <name> create` (which auto-activates the first version). Discover existing skills first and offer reuse before authoring.
 12. The model, credentials, env vars, and tools per step, reusing from the Phase 0 catalog by ID wherever a fit exists, and creating new only with the paste-through warning for secrets.
+13. The command line tools per step, resolved against the Phase 0 worker picture by the Worker capabilities procedure in `resources/common.md`. Declare every tool that is not in `base_tools` by capability under `metadata.requires` in the skill that runs it. Every step of a workflow runs on the worker its first step lands on, so check that one pool provides the union of what all steps require. When none does, swap tools until one pool covers the workflow, or record the pool change a platform admin has to make. Where `addons_available` is false, the fleet is fixed and only the first option exists.
 
 When a template was chosen in Phase 0, Stages 1 and 2 run identically. The template seeds step structure and wiring only from Stage 3 onward.
 
@@ -46,13 +47,15 @@ Score each step against `resources/workflow-assessment.md`. Reachable is the gat
 
 ## Phase 3: Plan gate
 
-Write `blueprint.md` under the working directory, for example `/tmp/exo-build/<slug>/blueprint.md`, using `resources/blueprint.template.md`, and present it. This is the one hard approval gate before any writes. It shows the outcome ladder, the step graph with per-step prompt, skill, model, environment, creds, vars, and metrics, the metric chain, the assessment scorecard, the reuse-versus-create plan, the handoff seams, and the dependency-ordered build sequence. The user approves once here, and only then do you touch the workspace.
+Write `blueprint.md` under the working directory, for example `/tmp/exo-build/<slug>/blueprint.md`, using `resources/blueprint.template.md`, and present it. This is the one hard approval gate before any writes. It shows the outcome ladder, the step graph with per-step prompt, skill, model, environment, creds, vars, required capabilities, and metrics, the worker requirements with anything a platform admin has to do before the first run, the metric chain, the assessment scorecard, the reuse-versus-create plan, the handoff seams, and the dependency-ordered build sequence. The user approves once here, and only then do you touch the workspace.
 
 ## Phase 4: Build in dependency order
 
-Create or wire resources from the leaves up, recording every resulting ID into `manifest.json` in the same working directory immediately after each create, so an interrupted build resumes without double-creating. Consult the manifest before every create. The order is credentials, models, skills, tool bindings, environments, tasks, then workflow. The write path for each is in common.md. Leave the workflow's cron schedule unset.
+Create or wire resources from the leaves up, recording every resulting ID into `manifest.json` in the same working directory immediately after each create, so an interrupted build resumes without double-creating. Consult the manifest before every create. The order is credentials, models, skills, tool bindings, environments, tasks, then workflow. The write path for each is in common.md. After each skill create or upload, read the `requires`, `warnings`, and `addon_suggestion` lines the CLI prints, and fix the bundle before building on it if a warning appears. Leave the workflow's cron schedule unset.
 
 ## Phase 5: First run
+
+Check that the run can be served before triggering it. Call `list_worker_capabilities` again and confirm that the same pool appears in `provided_by` for every capability the workflow requires. If no single pool does, do not trigger. The trigger would be refused with `no connected worker provides the capabilities this run requires` and no run would be created. Exit built_no_run and report what a platform admin has to do: create the suggested add-on, add an add-on to a pool, or give workers to a pool that has the capability but sits at `replicas` 0.
 
 Trigger one manual run with `trigger_workflow_run`, wait for terminal status, and summarize by walking the child runs and their event summaries, using the read primitives in common.md. The cron schedule stays unset through this phase.
 
@@ -64,6 +67,7 @@ Present the run result and route. A failed or ugly run points the user to the de
 
 - Outcome: built_ran_handed_off, built_no_run, blueprint_only, or stopped.
 - Blueprint path and the manifest of every created or reused resource ID, by type.
+- Worker requirements: the capabilities the workflow requires, the pool that serves them, and any change a platform admin still has to make, including an add-on suggestion waiting to be created.
 - Run trail: the manual run_id with status and duration, if a run happened.
 - Next step: the pointer to the improve or debug intent, and the exact call to enable the cron when ready.
 
@@ -72,6 +76,8 @@ Present the run result and route. A failed or ugly run points the user to the de
 - No nameable outcome metric: stay in Stage 1 until one exists.
 - User declines the blueprint at the plan gate: blueprint_only, with the blueprint saved.
 - A build write fails partway: the manifest holds what was created. Exit stopped and report the resume point.
+- No single pool can serve what the workflow requires: built_no_run, with the change a platform admin has to make. The build resumes at Phase 5 once it is made.
+- A step needs a tool the instance cannot provide and `addons_available` is false: surface it in Stage 4 and redesign the step. Do not build a workflow that can never run.
 - The manual run does not reach terminal status within a bounded wait: report the in-flight run_id.
 
 ## Sharp edges
@@ -80,6 +86,9 @@ Present the run result and route. A failed or ugly run points the user to the de
 - Secret material passes through context only with the warning, and only when no existing credential fits. Prefer reuse by ID.
 - Route to the debug and improve intents as user-driven hops at the end. Within this intent you do not run their loops.
 - Workflows are linear step chains, not DAGs. The decomposition must be a sequence.
+- A skill that runs a tool without declaring it works only by luck. It lands on any worker, and fails with a command-not-found error the day a leaner pool exists. Declare every tool outside `base_tools`.
+- An `exo-addon.json` is a suggestion, not an install. Nothing runs on it until a platform admin creates the add-on and adds it to a pool, so a workflow that depends on one ends built_no_run.
+- Read `addons_available` before suggesting anything. Where it is false, as on the demo edition, no add-on can be created and no pool can change, so requiring an unserved capability or shipping an `exo-addon.json` produces a skill that can never run there.
 - The manifest is the resume key. Consult it before every create, and never create a resource whose ID already sits in it.
 - Template cloning rebinds every referenced ID. A cloned workflow must not inherit the source's creds, env, model, or skill_refs.
 - The assessment steers but never blocks. The metric is the only hard prerequisite.
