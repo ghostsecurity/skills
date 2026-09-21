@@ -51,7 +51,7 @@ Resolve every command line tool a skill runs, in this order:
 
 When `addons_available` is true, a platform admin can change what the workers carry:
 
-- The catalog lists the capability but `provided_by` is empty: still require it, and record what the platform admin has to do. That is adding the add-on to a pool, or giving workers to a pool that already has it but sits at `replicas` 0.
+- The catalog lists the capability but `provided_by` is empty: still require it, and record what the platform admin has to do, in the skill's description and in your report. That is adding the add-on to a pool, or giving workers to a pool that already has it but sits at `replicas` 0.
 - No capability covers the tool: add an `exo-addon.json` to the bundle in the shape `guidance` gives, pin every version, and require its capability. The file is a suggestion and does nothing on its own. A platform admin creates the add-on from it and adds it to a pool.
 
 When `addons_available` is false, the fleet is fixed. This is the case on the demo edition and on an instance without the in-stack updater, and `addons_unavailable_reason` says which. Nobody can add an add-on or change a pool there, so a capability with an empty `provided_by` stays unserved however the catalog lists it. Use only `base_tools` and what a pool already provides. Do not require a capability no pool provides and do not include an `exo-addon.json`, because a skill that does either can never run on that instance. Design around the tools that are listed, or tell the user the instance cannot support the tool.
