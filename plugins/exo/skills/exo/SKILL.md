@@ -1,5 +1,5 @@
 ---
-name: "exo"
+name: "ghost-exo"
 description: The single interface for building, improving, and debugging exo workflows. Routes to one of three intents. BUILD takes a rough idea through interrogation, assessment, resource creation in dependency order, and one manual run, then hands off. IMPROVE runs the observe-and-iterate loop over recent runs, proposing and applying changes behind two gates. DEBUG diagnoses one failed or misbehaving run by walking the dependency graph of everything it touched. Use whenever the user wants to create a new exo workflow, iterate on or improve an existing one, or find out why a specific run failed.
 license: apache-2.0
 metadata:

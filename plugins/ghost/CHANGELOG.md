@@ -6,7 +6,7 @@ Moves the exo skill into its own `exo` plugin in this marketplace. The `ghost` p
 
 ### Skills
 
-- **ghost-exo** - Removed from this plugin. Install it as `exo` with `/plugin install exo@ghost-security`.
+- **ghost-exo** - Moved to the `exo` plugin. Install it with `/plugin install exo@ghost-security`.
 
 ## 1.2.0 - 2026-08-26
 

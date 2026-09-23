@@ -53,7 +53,7 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 
 | Skill | Description |
 |-------|-------------|
-| `exo` | Build, improve, and debug workflows on the exo agent orchestration platform |
+| `ghost-exo` | Build, improve, and debug workflows on the exo agent orchestration platform |
 
 ### ghost-repo-context
 <div align="center">
