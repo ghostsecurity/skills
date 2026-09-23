@@ -47,11 +47,7 @@ Full documentation, tutorials, and video usage guides are available at [ghostsec
 
 ## Exo Workflows
 
-`ghost-exo` drives [exo](https://ghostsecurity.ai), an agent orchestration platform. Connect your exo MCP server, then:
-
-```
-/ghost-exo           # Turn an idea into a workflow, iterate on an existing one, or diagnose a failed run
-```
+The exo skill ships as a separate plugin. See the [exo plugin](../exo/README.md).
 
 ## Contributing
 

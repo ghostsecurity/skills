@@ -9,6 +9,7 @@ With Claude Code:
 ```
 claude plugin marketplace add ghostsecurity/skills
 claude plugin install ghost@ghost-security
+claude plugin install exo@ghost-security
 claude
 ```
 <div align="center">
@@ -20,9 +21,10 @@ Alternatively, install the skills plugin within Claude Code:
 ```
 /plugin marketplace add ghostsecurity/skills
 /plugin install ghost@ghost-security
+/plugin install exo@ghost-security
 ```
 
-Currently, you will need to restart Claude Code for the plugin to load.
+Install only the plugins you need. If the install summary asks for it, run `/reload-plugins` to activate the plugin.
 
 
 ## Comprehensive Documentation
@@ -30,6 +32,8 @@ Currently, you will need to restart Claude Code for the plugin to load.
 Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://ghostsecurity.ai).
 
 ## Skills in this Repository Marketplace
+
+### ghost
 
 [Ghost Plugin (with skills)](plugins/ghost/README.md).
 
@@ -42,7 +46,14 @@ Full documentation, tutorials, and video guides at [ghostsecurity.ai](https://gh
 | `ghost-report` | Combined security report across all scan results |
 | `ghost-validate` | Dynamic validation of findings against a live application (DAST) |
 | `ghost-proxy` | HTTP proxy for the `ghost-validate` skill |
-| `ghost-exo` | Build, improve, and debug workflows on the exo agent orchestration platform |
+
+### exo
+
+[Exo Plugin](plugins/exo/README.md).
+
+| Skill | Description |
+|-------|-------------|
+| `exo` | Build, improve, and debug workflows on the exo agent orchestration platform |
 
 ### ghost-repo-context
 <div align="center">

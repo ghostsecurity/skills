@@ -1,0 +1,21 @@
+{
+  "name": "exo",
+  "description": "Build, improve, and debug workflows on the exo agent orchestration platform",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ghost Security",
+    "email": "oss@ghost.security",
+    "url": "https://ghostsecurity.ai"
+  },
+  "homepage": "https://ghostsecurity.ai",
+  "repository": "https://github.com/ghostsecurity/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "exo",
+    "workflow",
+    "orchestration",
+    "agents",
+    "mcp",
+    "ghost-security"
+  ]
+}

@@ -13,6 +13,11 @@
       "name": "ghost",
       "source": "./plugins/ghost",
       "strict": true
+    },
+    {
+      "name": "exo",
+      "source": "./plugins/exo",
+      "strict": true
     }
   ]
 }
