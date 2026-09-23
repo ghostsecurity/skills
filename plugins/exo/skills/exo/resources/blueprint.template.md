@@ -14,7 +14,7 @@
 - Trigger: {{cron | webhook | manual}}, cadence {{CADENCE}}
 - Cadence justified against the measurement window: {{WHY}}
 - Definition of done for one run: {{DONE}}
-- Durable artifact a run leaves: {{ARTIFACT}}
+- Durable files written to `$EXO_OUTPUT_DIR`: {{none, run output kept as `output.txt` | one line per file: `PATH` (md | json), written by step N, what it holds}}
 
 ## Steps
 
@@ -23,7 +23,7 @@ For each step, in order:
 ### Step {{N}}: {{STEP_NAME}}
 
 - Single responsibility: {{WHAT}}
-- Emits metric: `{{STEP_METRIC}}`
+- Emits metric: `{{STEP_METRIC | none}}`, defined as a `task_metric` on this step's task and emitted per the runtime contract in `resources/common.md`
 - Inputs: {{INPUTS}}
 - Outputs and handoff seam to next step: file `{{PATH}}`, metric keys `{{KEYS}}`
 - Skill: {{reuse skill_id ... | author new ...}}
@@ -38,6 +38,7 @@ For each step, in order:
 
 Every step runs on the worker the first step lands on, so one pool has to provide all of this.
 
+- Script language for new skills: {{python3 | node | sh | none, no new scripts}}, with {{standard library only | packages via add-on CAPABILITY}}
 - Capabilities the workflow requires, across all steps: {{CAPABILITIES or none}}
 - Pool that provides all of them: {{POOL or none yet}}
 - Add-on suggested in a skill bundle (`exo-addon.json`): {{CAPABILITY and tool versions, or none}}

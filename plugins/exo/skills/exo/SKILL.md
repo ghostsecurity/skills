@@ -3,7 +3,7 @@ name: "ghost-exo"
 description: The single interface for building, improving, and debugging exo workflows. Routes to one of three intents. BUILD takes a rough idea through interrogation, assessment, resource creation in dependency order, and one manual run, then hands off. IMPROVE runs the observe-and-iterate loop over recent runs, proposing and applying changes behind two gates. DEBUG diagnoses one failed or misbehaving run by walking the dependency graph of everything it touched. Use whenever the user wants to create a new exo workflow, iterate on or improve an existing one, or find out why a specific run failed.
 license: apache-2.0
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # exo
@@ -26,7 +26,7 @@ Call `whoami` on the chosen server. It confirms the connection and returns the w
 
 ## Always read first
 
-Read `resources/common.md`. It holds the shared substrate every intent uses: the run-walking read primitives, the worker capability rules that decide which tools a skill may use and how it declares them, the DTO discovery discipline, the resource write primitives, the unprobeable nodes, and the note on why the improve intent reads the debug recipe inline rather than invoking it.
+Read `resources/common.md`. It holds the shared substrate every intent uses: the run-walking read primitives, the worker capability rules that decide which tools a skill may use and how it declares them, the DTO discovery discipline, the resource write primitives, the runtime contract for output, metrics, completion, and memory that every step runs under, the unprobeable nodes, and the note on why the improve intent reads the debug recipe inline rather than invoking it.
 
 ## Classify the intent
 

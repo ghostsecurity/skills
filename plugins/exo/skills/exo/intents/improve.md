@@ -12,13 +12,15 @@ The shared substrate, namely the read and write primitives, the DTO discovery di
 
 ## What improvement means
 
-Four signal categories, three across the run set and one within a single run.
+Five signal categories. Three come from across the run set, one comes from a single run, and repeated work can show in either.
 
 Correctness, from failed runs: any run whose terminal status is failure, or whose events show errors that resolved only after retries. For each, run the debug walk inline (see step 4). A failure in 1 of 3 runs is also a consistency signal, pointing at flakiness rather than a universal break.
 
 Efficiency, from cross-run aggregates: total tokens per run, total duration, per-step tokens and duration, tool-call count per step, retry or error counts that still resolved, and idle gaps between steps that change no state.
 
 Consistency, from cross-run variance: whether each run used the same tools in roughly the same order, whether per-step durations sit in a tight band, whether each run hit the same skill versions, whether output shapes match, and whether any run took a path the others did not.
+
+Repeated work, from cross-run inputs: runs that process the same items with nothing changed upstream, such as the same alerts at the same commit. One run can show it too. A step that takes the top N in a fixed order, and leaves unresolved items open, picks the same N on every run.
 
 Within-run inefficiency: repeated tool calls with identical arguments, long stretches of model output with no tool use and no state change, steps whose token budget is disproportionate to the work, and prompts dragged up by context the task does not need.
 
@@ -35,6 +37,7 @@ The single most valuable transformation is moving work out of the model and into
 - A model turn that exists mainly to parse a blob of command output, where filtering at the previous step leaves only the fields the next turn needs.
 - A model turn that tracks variables, paths, or state across the run, where externalizing that into a file or an env var removes the bookkeeping.
 - A model turn that picks between options a script could pick with a conditional.
+- A step that re-processes items an earlier run already handled, where workflow memory keyed on the item and its input version lets a script skip them. See the memory rule in the runtime contract in common.md.
 - Long repeated context blocks in prompts that exist only because the previous step did not extract the needed part.
 
 Name which lever a proposal pulls. When a proposal pulls none but still matters, such as a missing handoff, a failed-run fix, or a consistency tightening, say so explicitly.
@@ -104,5 +107,6 @@ At the end of every loop, including a mid-iteration stop:
 - A proposal that moves nothing up a rung is polish, not improvement. Label it polish at the first gate if the user asked for one anyway.
 - Prefer thought-removal proposals, because moving work out of the model cuts tokens, latency, and variance and usually opens a cheaper model, which other improvements rarely all do.
 - Outlier-driven beats average-driven. Two consistent runs and one divergent is sharper than three uniformly varying.
+- Memory persists only when the workflow sets `memory_enabled: true`. Setting it on the task alone saves nothing. Enabling it is a workflow update, so it is a full replacement body per common.md. The first run after enabling starts with empty memory and only fills it. It shows no saving, so judge the change on the run after that. Use `get_workflow_memory` to confirm the tables and rows between the two runs.
 - The bound environment at run time may differ from the workflow's current binding if rebound since. Write to the one the analyzed runs used, captured in step 3.
 - "The rerun looks better" is not the user being satisfied. Wait for explicit confirmation before user_satisfied.

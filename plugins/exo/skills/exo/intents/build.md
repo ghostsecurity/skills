@@ -23,7 +23,7 @@ Every question in this phase goes through the harness's structured question tool
 ### Stage 2: Trigger and the unit of work
 
 4. What fires the workflow and on what cadence, with the cadence justified against the outcome's measurement window rather than picked arbitrarily.
-5. The definition of done for one run and the durable artifact it leaves.
+5. The definition of done for one run, and whether it leaves durable files. Without them, each step's run output is kept as `output.txt`. When a step writes files to `$EXO_OUTPUT_DIR`, name each file, its format, and the step that writes it, per the runtime contract in `resources/common.md`.
 
 ### Stage 3: Decomposition into linear steps
 
@@ -35,9 +35,10 @@ Every question in this phase goes through the harness's structured question tool
 ### Stage 4: Per-step realization
 
 10. The judgment-versus-deterministic split per step, applying the remove-thought lens, which decides how much is scripted skill versus prompt.
-11. The skill per step, resolved interactively: reuse an existing skill by skill_id, or author a new one with `scripts/exo-skill.py --profile <name> create` (which auto-activates the first version). Discover existing skills first and offer reuse before authoring.
-12. The model, credentials, env vars, and tools per step, reusing from the Phase 0 catalog by ID wherever a fit exists, and creating new only with the paste-through warning for secrets.
-13. The command line tools per step, resolved against the Phase 0 worker picture by the Worker capabilities procedure in `resources/common.md`. Declare every tool that is not in `base_tools` by capability under `metadata.requires` in the skill that runs it. A reused skill counts too: read its `requires` from `get_resource('skill', id)`, and if it runs a tool it never declared, plan a new version that declares it. Every step of a workflow runs on the worker its first step lands on, so check that one pool provides the union of what all steps require. When none does, swap tools until one pool covers the workflow, or record the pool change a platform admin has to make. Where `addons_available` is false, the fleet is fixed and only the first option exists.
+11. The script language, asked once per build and only when a step needs a new script. Offer python3 as the recommended default, then node, then POSIX `sh`. Recommend `sh` only for a few commands with no data handling. A script that parses JSON, sorts, filters, or compares versions belongs in python3 or node. A reused skill keeps its own language. Offer an interpreter only when the Phase 0 `base_tools` lists it. POSIX `sh` is always present, because entrypoints run through `sh -c`. For python3 or node, also ask whether the scripts need third-party packages. The standard library needs nothing. A package needs an add-on by the Worker capabilities procedure in `resources/common.md`. Where `addons_available` is false, scripts use the standard library only. Batch this question with the next item in one structured call.
+12. The skill per step, resolved interactively: reuse an existing skill by skill_id, or author a new one with `scripts/exo-skill.py --profile <name> create` (which auto-activates the first version). Discover existing skills first and offer reuse before authoring.
+13. The model, credentials, env vars, and tools per step, reusing from the Phase 0 catalog by ID wherever a fit exists, and creating new only with the paste-through warning for secrets.
+14. The command line tools per step, resolved against the Phase 0 worker picture by the Worker capabilities procedure in `resources/common.md`. Declare every tool that is not in `base_tools` by capability under `metadata.requires` in the skill that runs it. A reused skill counts too: read its `requires` from `get_resource('skill', id)`, and if it runs a tool it never declared, plan a new version that declares it. Every step of a workflow runs on the worker its first step lands on, so check that one pool provides the union of what all steps require. When none does, swap tools until one pool covers the workflow, or record the pool change a platform admin has to make. Where `addons_available` is false, the fleet is fixed and only the first option exists.
 
 When a template was chosen in Phase 0, Stages 1 and 2 run identically. The template seeds step structure and wiring only from Stage 3 onward.
 
@@ -57,7 +58,7 @@ Create or wire resources from the leaves up, recording every resulting ID into `
 
 Check that the run can be served before triggering it. Call `list_worker_capabilities` again and confirm that the same pool appears in `provided_by` for every capability the workflow requires. If no single pool does, do not trigger. The trigger would be refused with `no connected worker provides the capabilities this run requires` and no run would be created. Exit built_no_run and report what a platform admin has to do: create the suggested add-on, add an add-on to a pool, or give workers to a pool that has the capability but sits at `replicas` 0.
 
-Trigger one manual run with `trigger_workflow_run`, wait for terminal status, and summarize by walking the child runs and their event summaries, using the read primitives in common.md. The cron schedule stays unset through this phase.
+Trigger one manual run with `trigger_workflow_run`, wait for terminal status, and summarize by walking the child runs and their event summaries, using the read primitives in common.md. When the blueprint names durable files, call `list_workflow_outputs(workflow_id, parent_run_id=<run_id>)` and confirm that each one is in the capture. A capture that holds only `output.txt` means the step wrote none of its files, so that run goes to the debug intent, even when it is green. The cron schedule stays unset through this phase.
 
 ## Phase 6: Review gate and handoff
 
