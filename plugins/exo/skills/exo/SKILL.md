@@ -1,9 +1,9 @@
 ---
 name: "ghost-exo"
-description: The single interface for building, improving, and debugging exo workflows. Routes to one of three intents. BUILD takes a rough idea through interrogation, assessment, resource creation in dependency order, and one manual run, then hands off. IMPROVE runs the observe-and-iterate loop over recent runs, proposing and applying changes behind two gates. DEBUG diagnoses one failed or misbehaving run by walking the dependency graph of everything it touched. Use whenever the user wants to create a new exo workflow, iterate on or improve an existing one, or find out why a specific run failed.
+description: The single interface for building, improving, and debugging exo workflows. Routes to one of three intents. BUILD takes a rough idea, or an agent template slug from the ghostsecurity.ai catalog, through interrogation, assessment, resource creation in dependency order, and one manual run, then hands off. IMPROVE runs the observe-and-iterate loop over recent runs, proposing and applying changes behind two gates. DEBUG diagnoses one failed or misbehaving run by walking the dependency graph of everything it touched. Use whenever the user wants to create a new exo workflow, iterate on or improve an existing one, or find out why a specific run failed.
 license: apache-2.0
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # exo
@@ -34,7 +34,7 @@ Read `resources/common.md`. It holds the shared substrate every intent uses: the
 |---|---|---|
 | Why a specific run failed, what went wrong with a run_id, diagnosing one run | debug | `intents/debug.md` |
 | Improving, iterating on, tightening, or speeding up an existing workflow over its recent runs | improve | `intents/improve.md` |
-| Turning an idea into a new workflow, building, creating, or scaffolding a workflow | build | `intents/build.md` |
+| Turning an idea into a new workflow, building, creating, or scaffolding a workflow, or building from an agent template slug | build | `intents/build.md` |
 
 Pick exactly one. If the request is genuinely ambiguous between intents, ask the user which one in a single question rather than guessing.
 

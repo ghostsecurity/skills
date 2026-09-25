@@ -1,5 +1,7 @@
 # Workflow blueprint: {{WORKFLOW_NAME}}
 
+- Agent template: {{none | slug `SLUG`, fetched from `https://ghostsecurity.ai/agents/SLUG.md`}}
+
 ## Outcome and measurement
 
 - Security outcome: {{OUTCOME}}

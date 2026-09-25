@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0 - 2026-09-25
+
+Lets a build start from an agent template in the ghostsecurity.ai catalog. The website hands a user one prompt that names the template slug.
+
+### Skills
+
+- **ghost-exo** - The build intent accepts an agent template slug. It fetches `https://ghostsecurity.ai/agents/<slug>.md` and offers the template's outcome, steps, and requirements as proposed defaults in the interrogation.
+- **ghost-exo** - The blueprint records the agent template slug and the URL it came from.
+
 ## 1.1.0 - 2026-09-23
 
 Teaches the exo skill the runtime contract every workflow step runs under. A first build no longer has to guess how to emit metrics or where to save output.

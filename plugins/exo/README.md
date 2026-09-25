@@ -21,7 +21,7 @@ Connect your exo MCP server, then run:
 
 The skill routes each request to one of three intents:
 
-- **BUILD** takes a rough idea through interrogation, assessment, and resource creation in dependency order.
+- **BUILD** takes a rough idea through interrogation, assessment, and resource creation in dependency order. Name an agent template slug from [ghostsecurity.ai/agents](https://ghostsecurity.ai/agents/) to start from that template.
 - **IMPROVE** runs the observe-and-iterate loop over recent runs behind two approval gates.
 - **DEBUG** diagnoses a single failed run by walking the dependency graph of everything it touched.
 
