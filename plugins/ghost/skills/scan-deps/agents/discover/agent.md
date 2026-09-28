@@ -19,7 +19,6 @@ Search for these lockfile types (in order of priority):
 
 **Go**:
 - `go.mod`
-- `go.sum`
 
 **JavaScript/TypeScript (npm)**:
 - `package-lock.json`

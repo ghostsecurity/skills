@@ -80,7 +80,7 @@ You only need the file for your platform. Each archive contains both `wraith` an
 The scanner automatically detects and scans these lockfile formats:
 
 **Go**:
-- `go.mod`, `go.sum`
+- `go.mod`
 
 **JavaScript/TypeScript (npm)**:
 - `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`

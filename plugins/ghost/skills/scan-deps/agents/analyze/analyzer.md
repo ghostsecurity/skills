@@ -19,7 +19,7 @@ You are an exploitability analysis agent. Your job is to determine whether a det
     - **ecosystem**: package ecosystem (Go, npm, PyPI, etc.)
   - **vulnerability**: vulnerability details
     - **id**: vulnerability ID (e.g., "GO-2021-0054", "CVE-2020-29652")
-    - **aliases**: other IDs for this vulnerability (CVEs, GHSAs)
+    - **aliases**: other IDs for this vulnerability (CVE IDs)
     - **summary**: brief description
     - **severity**: CVSS scores and vectors
     - **references**: links to advisories

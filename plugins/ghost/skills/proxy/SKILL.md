@@ -157,7 +157,7 @@ When used with the `validate` skill (may need to collaborate with the user to se
 
 ## Data Storage
 
-All data is stored in `~/.reaper/`:
+All data is stored in `~/.ghost/reaper/`:
 - `reaper.db` - SQLite database with captured entries
 - `reaper.sock` - Unix socket for CLI-to-daemon IPC
 - `reaper.pid` - Daemon process ID

@@ -56,28 +56,23 @@ For each scan output file, read the JSON structure:
 
 ```json
 {
-  "package_count": 42,
-  "vulnerability_count": 3,
-  "license_violation_count": 0,
+  "package_count": 1,
+  "vulnerability_count": 1,
   "results": [
     {
-      "package": "golang.org/x/crypto",
-      "version": "0.0.0-20200622213623-75b288015ac9",
-      "ecosystem": "Go",
-      "found_vulnerabilities": [
+      "Package": "jinja2",
+      "Version": "2.10.0",
+      "Ecosystem": "PyPI",
+      "FoundVulnerabilities": [
         {
-          "id": "GO-2021-0054",
-          "summary": "Improper authentication in golang.org/x/crypto/ssh",
-          "details": "Attackers can extract private keys...",
-          "aliases": ["CVE-2020-29652", "GHSA-3wxm-m9m4-cprj"],
-          "severity": [
-            {
-              "type": "CVSS_V3",
-              "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
-            }
-          ],
-          "references": [
-            {"type": "ADVISORY", "url": "https://github.com/advisories/GHSA-3wxm-m9m4-cprj"}
+          "ID": "GHSA-h5c8-rqwp-cp95",
+          "Summary": "Jinja vulnerable to HTML attribute injection when passing user input as keys to xmlattr filter",
+          "Details": "The `xmlattr` filter in affected versions of Jinja accepts keys containing spaces...",
+          "Severity": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+          "CVEs": ["CVE-2024-22195"],
+          "References": [
+            "https://github.com/pallets/jinja/security/advisories/GHSA-h5c8-rqwp-cp95",
+            "https://nvd.nist.gov/vuln/detail/CVE-2024-22195"
           ]
         }
       ]
@@ -85,6 +80,8 @@ For each scan output file, read the JSON structure:
   ]
 }
 ```
+
+Top-level keys are snake_case. Result and vulnerability keys are PascalCase. `Severity` is a single CVSS vector string and is empty when the advisory has none. `Summary` can also be empty.
 
 ### Step 4: Aggregate into Candidates File
 
@@ -109,12 +106,11 @@ Combine all scan results into a single `<scan_dir>/candidates.json` file with se
       "package": {
         "name": "golang.org/x/crypto",
         "version": "0.0.0-20200622213623-75b288015ac9",
-        "ecosystem": "Go",
-        "purl": "pkg:golang/golang.org/x/crypto@0.0.0-20200622213623-75b288015ac9"
+        "ecosystem": "Go"
       },
       "vulnerability": {
         "id": "GO-2021-0054",
-        "aliases": ["CVE-2020-29652", "GHSA-3wxm-m9m4-cprj"],
+        "aliases": ["CVE-2020-29652"],
         "summary": "Improper authentication in golang.org/x/crypto/ssh",
         "details": "Attackers can extract private keys...",
         "severity": [
@@ -124,10 +120,7 @@ Combine all scan results into a single `<scan_dir>/candidates.json` file with se
           }
         ],
         "references": [
-          {
-            "type": "ADVISORY",
-            "url": "https://github.com/advisories/GHSA-3wxm-m9m4-cprj"
-          }
+          "https://github.com/advisories/GHSA-3wxm-m9m4-cprj"
         ]
       }
     }
@@ -142,7 +135,12 @@ Combine all scan results into a single `<scan_dir>/candidates.json` file with se
 4. Create a candidate with a unique sequential ID
 5. Include lockfile reference (path and ID)
 6. Include full package details
-7. Include full vulnerability details
+7. Include full vulnerability details, mapping Wraith fields to candidate fields:
+   - `Package`, `Version`, `Ecosystem` to `package.name`, `package.version`, `package.ecosystem`
+   - `ID`, `Summary`, `Details` to `vulnerability.id`, `vulnerability.summary`, `vulnerability.details`
+   - `CVEs` to `vulnerability.aliases`
+   - `Severity` to `vulnerability.severity` as one entry, with the vector as `score`. Set `type` from the vector prefix: `CVSS:3.x` is `CVSS_V3`, `CVSS:4.0` is `CVSS_V4`, and no `CVSS:` prefix is `CVSS_V2`. Use an empty list when `Severity` is empty.
+   - `References` to `vulnerability.references`
 
 ### Step 5: Handle Edge Cases
 
@@ -223,4 +221,4 @@ If the scan fails:
 - The scanner supports offline mode with `--offline` flag (requires prior database download)
 - License violations are separate from vulnerabilities and not included in candidates
 - Vulnerability IDs follow ecosystem conventions (GO-YYYY-NNNN, GHSA-*, CVE-*, etc.)
-- Multiple CVE IDs may map to the same vulnerability (listed in `aliases`)
+- Multiple CVE IDs may map to the same vulnerability (listed in `CVEs`, carried into `aliases`)

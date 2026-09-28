@@ -40,7 +40,7 @@ Extract:
 
 ### Step 2: Load criteria
 
-Read `<skill_dir>/criteria/<type>.yaml` — look up `<agent>` → `<vector>`. Extract: `cwe`, `severity` (high/medium/low descriptions), and `criteria` (validation criteria list).
+Read `<skill_dir>/criteria/<type>.yaml` — look up `<agent>` → `<vector>`. Extract: `cwe`, `severity` (high/medium/low descriptions, when present), and `criteria` (validation criteria list).
 
 ### Step 3: Exploration
 
@@ -79,7 +79,7 @@ A finding is genuine ONLY if **ALL** validation criteria from the vector's crite
 **For each finding, you must:**
 1. Analyze every criterion in the criteria list. If ANY criterion is not met, do NOT report it.
 2. Collect specific code evidence — exact lines, file paths, line numbers.
-3. Determine severity based on the severity descriptions provided.
+3. Determine severity based on the severity descriptions provided. If the vector has no `severity` descriptions, assess severity from the demonstrated impact and state that basis in the description.
 4. Write remediation guidance specific to the code and framework.
 
 **Do NOT report:**

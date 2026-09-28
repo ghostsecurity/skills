@@ -1,57 +1,29 @@
-# Ghost's AI-native Application Security Skills
+# Ghost Security AppSec Skills
 
-## Installation (Claude Code)
+AI-native application security scanning, validation, and remediation skills for Claude Code.
 
-Quickly install the skills plugin using the marketplace capability in Claude Code:
+## Installation
 
 ```
 /plugin marketplace add ghostsecurity/skills
 /plugin install ghost@ghost-security
 ```
 
+## Skills
+
+| Skill | Description |
+|-------|-------------|
+| `ghost-repo-context` | Build shared repository context (business criticality, sensitive data, component map) |
+| `ghost-scan-deps` | Exploitability analysis of dependency vulnerabilities (SCA) |
+| `ghost-scan-secrets` | Context assessment of detected secrets and credentials |
+| `ghost-scan-code` | AI-powered detection of code security issues (SAST) |
+| `ghost-report` | Combined security report across all scan results |
+| `ghost-validate` | Dynamic validation of findings against a live application (DAST) |
+| `ghost-proxy` | HTTP proxy for the `ghost-validate` skill |
+
 ## Documentation
 
-Full documentation, tutorials, and video usage guides are available at [ghostsecurity.ai](https://ghostsecurity.ai).
-
-## Quick Start
-
-1. Open Claude Code in your repository:
-   ```
-   cd /path/to/your/repo
-   claude
-   ```
-
-2. Install the skills plugin if not already installed (see above).
-
-3. Build repository context (recommended before scanning):
-   ```
-   /ghost-repo-context       # Build a shared repository context used by all the scan skills
-   ```
-
-4. Run scans to understand the security posture of your repository:
-   ```
-   /ghost-scan-deps     # Exploitability analysis of dependency vulnerabilities (SCA)
-   /ghost-scan-secrets  # Context assessment of detected secrets and credentials 
-   /ghost-scan-code     # AI-powered detection of code security issues (SAST)
-   ```
-
-5. Generate a combined security report:
-   ```
-   /ghost-report        # Combined security report across all scan results
-   ```
-
-6. Validate findings against a live application:
-   ```
-   /ghost-validate      # Dynamic/live validation against a live application (DAST)
-   ```
-
-## Exo Workflows
-
-The exo skill ships as a separate plugin. See the [exo plugin](../exo/README.md).
-
-## Contributing
-
-Contributions are welcome! Please open a pull request or issue on this repository.
+See the [repository README](../../README.md) and [Installation and usage](../../docs/installation.md).
 
 ## Feedback, Feature Requests, and Issues
 

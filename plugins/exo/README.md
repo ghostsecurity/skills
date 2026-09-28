@@ -1,10 +1,8 @@
-# Exo Workflow Skill
+# Ghost Security Exo
 
 The `ghost-exo` skill builds, improves, and debugs workflows on [exo](https://ghostsecurity.ai), an agent orchestration platform.
 
-## Installation (Claude Code)
-
-Install the plugin from the Ghost Security marketplace:
+## Installation
 
 ```
 /plugin marketplace add ghostsecurity/skills
@@ -13,17 +11,17 @@ Install the plugin from the Ghost Security marketplace:
 
 ## Usage
 
-Connect your exo MCP server, then run:
+Run the skill. It connects the exo MCP server on first use if needed:
 
 ```
 /ghost-exo     # Turn an idea into a workflow, iterate on an existing one, or diagnose a failed run
 ```
 
-The skill routes each request to one of three intents:
+Name an agent template slug from [ghostsecurity.ai/agents](https://ghostsecurity.ai/agents/) to start a build from that template.
 
-- **BUILD** takes a rough idea through interrogation, assessment, and resource creation in dependency order. Name an agent template slug from [ghostsecurity.ai/agents](https://ghostsecurity.ai/agents/) to start from that template.
-- **IMPROVE** runs the observe-and-iterate loop over recent runs behind two approval gates.
-- **DEBUG** diagnoses a single failed run by walking the dependency graph of everything it touched.
+## Documentation
+
+See [Ghost Security Exo](../../docs/exo.md) for connecting the MCP server, the three intents, and how workflows run.
 
 ## Feedback, Feature Requests, and Issues
 
